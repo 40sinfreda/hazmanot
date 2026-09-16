@@ -53,7 +53,8 @@
     });
     if (ov.agents && ov.agents.length) {
       ov.agents.forEach(function (a) {
-        var i = (DATA.agents || []).findIndex(function (x) { return String(x.code) === String(a.code); });
+        var i = -1;
+        (DATA.agents || []).forEach(function (x, idx) { if (String(x.code) === String(a.code)) i = idx; });
         if (i >= 0) DATA.agents[i] = Object.assign({}, DATA.agents[i], a);
         else DATA.agents.push(a);
       });
@@ -80,9 +81,7 @@
   window.prepNew = function () {
     if (_prepNew) _prepNew();
     var d = document.getElementById("delivery");
-    if (d && !d.value) d.value = nextWorkday();
-    var hint = document.getElementById("date-hint");
-    if (hint) hint.textContent = "ברירת מחדל: מחר · אין הזמנות בשישי ושבת";
+    if (d) d.value = nextWorkday();
   };
 
   var _editOrder = window.editOrder;
@@ -105,19 +104,17 @@
     });
   }
 
-  var _goToLines = null;
-  var nextBtn = document.getElementById("next-lines-btn");
-  if (nextBtn) {
-    nextBtn.addEventListener("click", function () {
-      var d = document.getElementById("delivery");
-      if (d && isWeekend(d.value)) {
-        toast("לא ניתן להזמין לשישי או שבת");
-        d.value = nextWorkday();
-      }
-    }, true);
-  }
+  var _saveOrder = window.saveOrder;
+  window.saveOrder = function () {
+    var d = document.getElementById("delivery");
+    if (d && isWeekend(d.value)) {
+      toast("לא ניתן להזמין לשישי או שבת");
+      d.value = nextWorkday();
+      return;
+    }
+    if (_saveOrder) _saveOrder();
+  };
 
-  var _show = window.showScreen;
   window.showScreen = function (name, keep) {
     ["home", "new", "detail", "settings"].forEach(function (s) {
       var el = document.getElementById("screen-" + s);
@@ -127,18 +124,13 @@
       b.classList.toggle("active", b.getAttribute("data-s") === name);
     });
     if (name === "new" && !keep) {
-      if (_prepNew) _prepNew();
-      var d = document.getElementById("delivery");
-      if (d && !d.value) d.value = nextWorkday();
+      if (window.prepNew) window.prepNew();
       var meta = document.getElementById("step-meta");
       var lines = document.getElementById("step-lines");
       if (meta) meta.classList.add("on");
       if (lines) lines.classList.remove("on");
     }
     if (name === "settings") renderSettings();
-    if (name !== "new" && name !== "settings" && name !== "detail" && name !== "home") {
-      if (_show) _show(name, keep);
-    }
   };
 
   function setTab(t) {
@@ -275,8 +267,7 @@
     var save = document.getElementById("pe-save");
     if (save) save.addEventListener("click", function () {
       var out = [];
-      var cards = box.querySelectorAll(".pe-card");
-      cards.forEach(function (card) {
+      box.querySelectorAll(".pe-card").forEach(function (card) {
         var obj = {};
         card.querySelectorAll("input").forEach(function (inp) { obj[inp.getAttribute("data-k")] = inp.value; });
         if (obj.name) out.push(obj);
@@ -316,7 +307,7 @@
   window.load = function (cb) {
     _load(function () {
       applyCustomerOverrides();
-      fillAgents((document.getElementById("agent") || {}).value || "");
+      if (typeof fillAgents === "function") fillAgents((document.getElementById("agent") || {}).value || "");
       fillSuppliers((document.getElementById("supplier") || {}).value || "");
       cb && cb();
     });
