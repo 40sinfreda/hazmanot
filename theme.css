@@ -2,9 +2,20 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
 body{padding-bottom:88px}
-.header{background:var(--brand);color:#fff;padding:16px 16px calc(16px + env(safe-area-inset-top))}
-.header h1{margin:0;font-size:1.2rem}
-.header .sub{opacity:.8;font-size:.85rem;margin-top:4px}
+.header{background:var(--brand);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 14px;display:flex;align-items:center;gap:12px}
+.header h1{margin:0;font-size:1.15rem}
+.header .sub{opacity:.8;font-size:.82rem;margin-top:3px}
+.hdr-bull{width:46px;height:46px;object-fit:contain;flex-shrink:0}
+#splash{position:fixed;inset:0;background:#000;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;color:#cfe0d6}
+#splash.hide{opacity:0;pointer-events:none;transition:opacity .35s}
+.splash-bull{width:88px;height:88px;object-fit:contain;margin-bottom:8px}
+.splash-logo{width:min(86vw,420px);height:auto;margin:4px 0 10px}
+.splash-title{font-size:1.05rem;color:#fff;margin-bottom:18px}
+.bar{width:min(70vw,280px);height:6px;background:#1b3d32;border-radius:99px;overflow:hidden}
+#bar-fill{height:100%;width:8%;background:#3d8f6e;transition:width .25s}
+#splash-msg{margin-top:10px;font-size:.85rem;opacity:.8}
+#install-btn{margin-top:22px;border:0;background:#3d8f6e;color:#fff;border-radius:12px;padding:12px 22px;font-size:1rem}
+#ios-hint{margin-top:16px;font-size:.85rem;opacity:.75;max-width:260px;line-height:1.4}
 .screen{display:none;padding:12px}
 .screen.active{display:block}
 .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
