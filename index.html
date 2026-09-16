@@ -4,14 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f3d2e">
-  <title>הזמנות סוכנים</title>
-  <link rel="stylesheet" href="theme.css?v=6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="הזמנות כלבו ווט">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="icon" href="icon.svg">
+  <title>הזמנות כלבו ווט</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="theme.css?v=8">
 </head>
 <body>
+  <div id="splash">
+    <img class="splash-bull" src="icon.svg" alt="">
+    <div class="brand-he">כלבו ווט</div>
+    <div class="brand-en">COLBOVET</div>
+    <div class="splash-title">הזמנות סוכנים</div>
+    <div class="bar"><div id="bar-fill"></div></div>
+    <div id="splash-msg">טוען נתונים...</div>
+    <button type="button" id="install-btn" hidden>התקן את האפליקציה</button>
+    <div id="ios-hint" hidden>באייפון: שתף ← הוסף למסך הבית</div>
+  </div>
   <div class="header">
-    <h1>הזמנות סוכנים</h1>
-    <div class="sub">כלבו ווט · מחסן ראשי</div>
-    <div class="sub" id="home-meta">טוען...</div>
+    <img class="hdr-bull" src="icon.svg" alt="">
+    <div>
+      <h1>הזמנות סוכנים</h1>
+      <div class="sub">כלבו ווט · מחסן ראשי</div>
+      <div class="sub" id="home-meta">טוען...</div>
+    </div>
   </div>
   <div id="screen-home" class="screen active">
     <input class="search" id="home-search" placeholder="חיפוש לקוח / סוכן / מספר" oninput="renderHome()">
@@ -22,7 +40,7 @@
       <button type="button" data-f="all" onclick="setHomeFilter('all')">הכל</button>
       <button type="button" onclick="load()">רענון</button>
     </div>
-    <div id="home-list"><div class="card empty">טוען קטלוג...</div></div>
+    <div id="home-list"><div class="card empty">טוען נתונים...</div></div>
   </div>
   <div id="screen-new" class="screen">
     <div class="card">
@@ -62,7 +80,7 @@
     <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
     <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
   </nav>
-  <script src="config.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="config.js?v=8"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
