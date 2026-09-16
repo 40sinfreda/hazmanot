@@ -87,9 +87,32 @@ function agentOptions(selected) {
       return '<option value="' + esc(a.code) + '"' + on + '>' + esc(a.name) + "</option>";
     }).join("");
 }
+function orderKey(o) {
+  return String(o.customerCode || o.customer || "") + "|" + toIsoDate(o.delivery);
+}
+function uniqueOrders(list) {
+  var byId = {};
+  (list || []).forEach(function (o) {
+    if (!o || !o.id) return;
+    byId[String(o.id)] = o;
+  });
+  var byKey = {};
+  Object.keys(byId).forEach(function (id) {
+    var o = byId[id];
+    var k = orderKey(o);
+    var prev = byKey[k];
+    if (!prev) { byKey[k] = o; return; }
+    var prevLocal = String(prev.id).indexOf("H-L") === 0;
+    var curLocal = String(o.id).indexOf("H-L") === 0;
+    if (prevLocal && !curLocal) byKey[k] = o;
+    else if (!prevLocal && curLocal) return;
+    else if ((o.lines || []).length >= (prev.lines || []).length) byKey[k] = o;
+  });
+  return Object.keys(byKey).map(function (k) { return byKey[k]; });
+}
 function renderHome() {
   var q = ((document.getElementById("home-search") || {}).value || "").toLowerCase();
-  var list = (DATA.orders || []).filter(function (o) {
+  var list = uniqueOrders(DATA.orders || []).filter(function (o) {
     if (HOME_FILTER === "open") return o.status !== "סופקה" && o.status !== "בוטלה";
     if (HOME_FILTER === "draft") return o.status === "טיוטה";
     if (HOME_FILTER === "ready") return o.status === "מוכנה";
@@ -117,7 +140,7 @@ function renderHome() {
     row.addEventListener("click", function () { openOrder(row.getAttribute("data-oid")); });
   });
   var meta = document.getElementById("home-meta");
-  if (meta) meta.textContent = (DATA.orders || []).length + " הזמנות";
+  if (meta) meta.textContent = uniqueOrders(DATA.orders || []).length + " הזמנות";
 }
 function setHomeFilter(f) {
   HOME_FILTER = f;
@@ -260,7 +283,7 @@ function saveOrder() {
     customer: PICKED_CUST.name,
     agentCode: a ? a.code : ag,
     agent: a ? a.name : "",
-    status: (CURRENT && EDITING_ID && CURRENT.status) || "טיוטה",
+    status: "טיוטה",
     supplier: sup ? sup.name : (supCode || ""),
     lines: LINES.slice()
   };
@@ -268,6 +291,7 @@ function saveOrder() {
   saveLocalOrder(payload);
   DATA.orders = (DATA.orders || []).filter(function (x) { return String(x.id) !== String(payload.id); });
   DATA.orders.push(payload);
+  DATA.orders = uniqueOrders(DATA.orders);
   toast("שומר הזמנה");
   showScreen("home");
   renderHome();
@@ -277,6 +301,7 @@ function saveOrder() {
       var oldId = payload.id;
       payload.id = j.id;
       DATA.orders = (DATA.orders || []).map(function (x) { return String(x.id) === String(oldId) ? payload : x; });
+      DATA.orders = uniqueOrders(DATA.orders);
       saveLocalOrder(payload);
     }
     load(function () { renderHome(); });
@@ -300,6 +325,9 @@ function editOrder() {
   try {
     if (!CURRENT) { toast("קודם פתח הזמנה"); return; }
     EDITING_ID = CURRENT.id;
+    CURRENT.status = "טיוטה";
+    saveLocalOrder(CURRENT);
+    postAction({ action: "setStatus", id: CURRENT.id, status: "טיוטה" }, function () {});
     var name = CURRENT.customer || "";
     PICKED_CUST = (DATA.customers || []).filter(function (c) {
       return c.name === name || String(c.code) === String(CURRENT.customerCode || "");
@@ -371,10 +399,12 @@ function loadRemoteOrders(done) {
     .then(function (j) {
       if (j && j.ok && j.orders) DATA.orders = j.orders;
       mergeLocalOrders();
+      DATA.orders = uniqueOrders(DATA.orders);
       done && done();
     })
     .catch(function () {
       mergeLocalOrders();
+      DATA.orders = uniqueOrders(DATA.orders);
       done && done();
     });
 }
@@ -447,6 +477,6 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then(function (regs) {
     regs.forEach(function (r) { r.update(); });
   });
-  navigator.serviceWorker.register("sw.js?v=29").catch(function () {});
+  navigator.serviceWorker.register("sw.js?v=30").catch(function () {});
 }
 load();
