@@ -207,16 +207,13 @@ function closeSplash() {
   setTimeout(function () { el.style.display = "none"; }, 400);
 }
 function hideSplash() {
-  if (isMobile() && !isStandalone()) {
-    setProgress(100, "מוכן");
-    showInstallIfNeeded();
-    var skip = document.getElementById("skip-install");
-    if (skip) skip.hidden = false;
+  setProgress(100, "מוכן");
+  if (isStandalone()) {
+    var wait = 2000 - (Date.now() - splashStarted);
+    if (wait > 0) setTimeout(closeSplash, wait);
+    else closeSplash();
     return;
   }
-  var wait = 2000 - (Date.now() - splashStarted);
-  if (wait > 0) setTimeout(closeSplash, wait);
-  else closeSplash();
 }
 function tickSplash() {
   var elapsed = Date.now() - splashStarted;
@@ -249,32 +246,9 @@ function load(cb) { getAll(cb); }
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
-function isMobile() {
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.innerWidth < 900 && "ontouchstart" in window);
-}
-function showInstallIfNeeded() {
-  var btn = document.getElementById("install-btn");
-  var hint = document.getElementById("ios-hint");
-  var skip = document.getElementById("skip-install");
-  if (isStandalone()) {
-    if (btn) btn.hidden = true;
-    if (hint) hint.hidden = true;
-    if (skip) skip.hidden = true;
-    return;
-  }
-  if (!isMobile()) {
-    if (btn) btn.hidden = true;
-    if (skip) skip.hidden = true;
-    return;
-  }
-  if (btn) btn.hidden = false;
-  if (skip) skip.hidden = false;
-  if (/iPhone|iPad|iPod/i.test(navigator.userAgent) && hint) hint.hidden = false;
-}
 window.addEventListener("beforeinstallprompt", function (e) {
   e.preventDefault();
   deferredPrompt = e;
-  showInstallIfNeeded();
 });
 window.addEventListener("appinstalled", function () {
   deferredPrompt = null;
@@ -290,15 +264,13 @@ window.addEventListener("appinstalled", function () {
       return;
     }
     var hint = document.getElementById("ios-hint");
-    if (hint) {
-      hint.hidden = false;
-      hint.textContent = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-        ? "באייפון: שתף ← הוסף למסך הבית"
-        : "בתפריט הדפדפן: הוסף למסך הבית / התקן אפליקציה";
-    }
+    if (hint) hint.style.opacity = "1";
   });
   if (skip) skip.addEventListener("click", function () { closeSplash(); });
-  showInstallIfNeeded();
+  if (isStandalone()) {
+    if (btn) btn.style.display = "none";
+    if (skip) skip.style.display = "none";
+  }
 })();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
 load();
