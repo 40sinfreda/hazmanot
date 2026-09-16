@@ -91,7 +91,8 @@ function setHomeFilter(f) {
 function fillSelect(id, items) {
   var el = document.getElementById(id);
   el.innerHTML = '<option value="">-- בחר --</option>' + items.map(function (it) {
-    return '<option value="' + String(it.val).replace(/"/g, """) + '">' + it.label + "</option>";
+    var v = String(it.val).split('"').join('&quot;');
+    return '<option value="' + v + '">' + it.label + "</option>";
   }).join("");
 }
 
