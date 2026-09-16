@@ -8,10 +8,12 @@ body{padding-bottom:88px}
 .screen{display:none;padding:12px}
 .screen.active{display:block}
 .card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.card.empty{color:var(--muted);text-align:center}
 .group-title{font-weight:700;margin:16px 4px 8px;color:var(--muted);font-size:.8rem}
 .order-row{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .order-row:last-child{border-bottom:0}
-.badge{font-size:.72rem;padding:3px 8px;border-radius:999px;background:#eee}
+.row-side{text-align:left}
+.badge{font-size:.72rem;padding:3px 8px;border-radius:999px;background:#eee;display:inline-block}
 .badge.טיוטה{background:#eceff1}
 .badge.מוכנה{background:#e8f5e9;color:var(--ok)}
 .badge.סופקה{background:#e3f2fd}
@@ -24,11 +26,15 @@ input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:
 .btn-primary{background:var(--brand);color:#fff}
 .btn-accent{background:var(--accent);color:#fff}
 .btn-outline{background:transparent;border:1px solid var(--line)}
+.btn-tiny{width:auto;padding:6px 10px;margin:0}
 .nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .nav button{flex:1;border:0;background:none;padding:10px 0 8px;color:var(--muted)}
 .nav button.active{color:var(--brand);font-weight:700}
-.toast{position:fixed;bottom:90px;left:16px;right:16px;background:#16352b;color:#fff;padding:12px;border-radius:10px;display:none;text-align:center}
+.toast{position:fixed;bottom:90px;left:16px;right:16px;background:#16352b;color:#fff;padding:12px;border-radius:10px;display:none;text-align:center;z-index:20}
 .toast.show{display:block}
 .line{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .search{margin-bottom:8px}
 .fab-note{font-size:.8rem;color:var(--muted);margin-top:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:.8rem;color:var(--muted)}
+.chips button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
