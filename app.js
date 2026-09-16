@@ -255,7 +255,6 @@ function saveOrder() {
   var sup = (DATA.agents || []).filter(function (x) { return String(x.code) === String(supCode); })[0];
   var payload = {
     action: "saveOrder",
-    id: EDITING_ID || undefined,
     delivery: document.getElementById("delivery").value,
     customerCode: PICKED_CUST.code,
     customer: PICKED_CUST.name,
@@ -265,19 +264,22 @@ function saveOrder() {
     supplier: sup ? sup.name : (supCode || ""),
     lines: LINES.slice()
   };
-  toast("שומר לגיליון...");
+  payload.id = EDITING_ID || ("H-L" + Date.now());
+  saveLocalOrder(payload);
+  DATA.orders = (DATA.orders || []).filter(function (x) { return String(x.id) !== String(payload.id); });
+  DATA.orders.push(payload);
+  toast("שומר הזמנה");
+  showScreen("home");
+  renderHome();
+  EDITING_ID = null;
   postAction(payload, function (j) {
-    if (j && j.ok) {
-      payload.id = j.id || EDITING_ID;
+    if (j && j.ok && j.id) {
+      var oldId = payload.id;
+      payload.id = j.id;
+      DATA.orders = (DATA.orders || []).map(function (x) { return String(x.id) === String(oldId) ? payload : x; });
       saveLocalOrder(payload);
-      toast("נשמר " + payload.id);
-    } else {
-      payload.id = EDITING_ID || ("H-L" + Date.now());
-      saveLocalOrder(payload);
-      toast("נשמר מקומית. הגיליון לא הגיב");
     }
-    EDITING_ID = null;
-    load(function () { showScreen("home"); });
+    load(function () { renderHome(); });
   });
 }
 function openOrder(id) {
@@ -445,6 +447,6 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then(function (regs) {
     regs.forEach(function (r) { r.update(); });
   });
-  navigator.serviceWorker.register("sw.js?v=28").catch(function () {});
+  navigator.serviceWorker.register("sw.js?v=29").catch(function () {});
 }
 load();
