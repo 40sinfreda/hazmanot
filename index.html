@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>הזמנות סוכנים</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="theme.css?v=4">
+  <link rel="stylesheet" href="theme.css?v=5">
 </head>
 <body>
   <div class="header">
@@ -15,7 +15,6 @@
     <div class="sub">כלבו ווט · מחסן ראשי</div>
     <div class="sub" id="home-meta">טוען...</div>
   </div>
-
   <div id="screen-home" class="screen active">
     <input class="search" id="home-search" placeholder="חיפוש לקוח / סוכן / מספר" oninput="renderHome()">
     <div class="chips">
@@ -25,9 +24,8 @@
       <button type="button" data-f="all" onclick="setHomeFilter('all')">הכל</button>
       <button type="button" onclick="load()">רענון</button>
     </div>
-    <div id="home-list"><div class="card empty">טוען נתונים מהגיליון...</div></div>
+    <div id="home-list"><div class="card empty">טוען קטלוג...</div></div>
   </div>
-
   <div id="screen-new" class="screen">
     <div class="card">
       <label>לקוח</label>
@@ -55,20 +53,18 @@
     </div>
     <button type="button" class="btn btn-primary" onclick="saveOrder()">שמור הזמנה</button>
   </div>
-
   <div id="screen-detail" class="screen">
     <div class="card" id="detail"></div>
     <button type="button" class="btn btn-primary" onclick="setStatus('מוכנה')">סמן מוכנה</button>
     <button type="button" class="btn btn-accent" onclick="setStatus('סופקה')">סמן סופקה</button>
     <button type="button" class="btn btn-outline" onclick="showScreen('home')">חזרה</button>
   </div>
-
   <div class="toast" id="toast"></div>
   <nav class="nav">
     <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
     <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
   </nav>
-  <script src="config.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="config.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
