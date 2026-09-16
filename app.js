@@ -110,8 +110,7 @@ function pickCustomer(i) {
   var c = (filterCustomers._list || [])[i];
   if (!c) return;
   PICKED_CUST = c;
-  document.getElementById("picked-cust").textContent = c.name;
-  document.getElementById("cust-search").value = "";
+  document.getElementById("cust-search").value = c.name;
   document.getElementById("cust-results").innerHTML = "";
   fillAgents(c.agent);
   fillSuppliers(c.agent);
@@ -134,8 +133,7 @@ function pickProduct(i) {
   var p = (filterProducts._list || [])[i];
   if (!p) return;
   PICKED_PROD = p;
-  document.getElementById("picked-prod").textContent = p.name;
-  document.getElementById("prod-search").value = "";
+  document.getElementById("prod-search").value = p.name;
   document.getElementById("prod-results").innerHTML = "";
   var st = stockMap()[p.sku];
   document.getElementById("stock-hint").textContent = st ? ("יתרה " + st.available + " · " + st.status) : "אין יתרה";
@@ -154,8 +152,6 @@ function prepNew() {
   document.getElementById("prod-search").value = "";
   document.getElementById("cust-results").innerHTML = "";
   document.getElementById("prod-results").innerHTML = "";
-  document.getElementById("picked-cust").textContent = "לא נבחר לקוח";
-  document.getElementById("picked-prod").textContent = "לא נבחר מוצר";
   document.getElementById("stock-hint").textContent = "";
   fillAgents(""); fillSuppliers(""); renderLines();
 }
