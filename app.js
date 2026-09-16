@@ -33,7 +33,7 @@ function formatDateHe(d) {
   return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : s;
 }
 function esc(s) {
-  return String(s == null ? "" : s).split("&").join("&").split("<").join("<").split(">").join(">");
+  return String(s == null ? "" : s).split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
 }
 function renderHome() {
   var q = ((document.getElementById("home-search") || {}).value || "").toLowerCase();
@@ -207,7 +207,7 @@ function hideSplash() {
 }
 function getAll(cb) {
   setProgress(15, "טוען נתונים...");
-  fetch("data.json?v=8")
+  fetch("data.json?v=" + Date.now())
     .then(function (r) { return r.json(); })
     .then(function (j) {
       setProgress(80, "מעבד קטלוג...");
