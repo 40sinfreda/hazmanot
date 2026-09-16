@@ -8,10 +8,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="כלבו ווט">
   <title>הזמנות כלבו ווט</title>
-  <link rel="manifest" href="manifest.json?v=31">
+  <link rel="manifest" href="manifest.json?v=32">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-  <link rel="stylesheet" href="theme.css?v=31">
+  <link rel="stylesheet" href="theme.css?v=32">
   <style>
     .step{display:none}
     .step.on{display:block}
@@ -20,6 +20,14 @@
     #save-wait .bar{width:min(70vw,280px);height:6px;background:#e6efe9;border-radius:99px;overflow:hidden;margin-top:16px}
     #save-fill{height:100%;width:12%;background:#3d8f6e;transition:width .3s}
     #save-wait-msg{margin-top:12px;font-size:1.05rem;font-weight:700;color:#16352b}
+    .cust-link{color:#0f3d2e;text-decoration:underline;cursor:pointer}
+    #cust-card{position:fixed;inset:0;background:rgba(22,53,43,.45);z-index:70;display:none;align-items:flex-end;justify-content:center}
+    #cust-card.show{display:flex}
+    #cust-card .sheet{background:#fff;width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));max-height:80vh;overflow:auto}
+    #cust-card h2{margin:0 0 12px;font-size:1.1rem}
+    .cust-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #e2ddd4;font-size:.95rem}
+    .cust-row span{color:#5c6b64}
+    .cust-row a{color:#0f3d2e}
   </style>
 </head>
 <body>
@@ -36,6 +44,12 @@
     <img class="splash-logo" src="logo.png" alt="" style="width:140px">
     <div id="save-wait-msg">ההזמנה נשמרת</div>
     <div class="bar"><div id="save-fill"></div></div>
+  </div>
+  <div id="cust-card">
+    <div class="sheet">
+      <div id="cust-card-body"></div>
+      <button type="button" class="btn btn-primary" id="cust-card-close">סגור</button>
+    </div>
   </div>
   <div class="header">
     <img class="hdr-logo" src="logo.png" alt="כלבו ווט">
@@ -99,8 +113,8 @@
     <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
     <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
   </nav>
-  <script src="config.js?v=31"></script>
-  <script src="app.js?v=31"></script>
-  <script src="order-flow.js?v=31"></script>
+  <script src="config.js?v=32"></script>
+  <script src="app.js?v=32"></script>
+  <script src="order-flow.js?v=32"></script>
 </body>
 </html>
