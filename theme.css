@@ -27,6 +27,9 @@ body{padding-bottom:88px}
 .badge{font-size:.72rem;padding:3px 8px;border-radius:999px;background:#eee;display:inline-block}
 label{display:block;margin:10px 0 4px;font-size:.85rem}
 input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:1rem;background:#fff}
+.qty-row{display:flex;gap:8px;align-items:center}
+.qty-row .search{flex:1;margin-bottom:0}
+.qty-row #qty{width:72px;flex-shrink:0;text-align:center}
 .btn{display:block;width:100%;border:0;border-radius:12px;padding:12px;font-size:1rem;cursor:pointer;margin-top:10px}
 .btn-primary{background:var(--brand);color:#fff}
 .btn-accent{background:var(--accent);color:#fff}
