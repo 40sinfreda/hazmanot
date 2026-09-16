@@ -1,4 +1,37 @@
 (function () {
+  function appInstalled() {
+    try {
+      if (window.matchMedia("(display-mode: standalone)").matches) return true;
+      if (window.navigator.standalone === true) return true;
+      if (localStorage.getItem("hazmanot_installed") === "1") return true;
+    } catch (e) {}
+    return false;
+  }
+  function hideInstallUi() {
+    ["install-btn", "skip-install", "ios-hint"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = "none";
+    });
+  }
+  function markInstalled() {
+    try { localStorage.setItem("hazmanot_installed", "1"); } catch (e) {}
+    hideInstallUi();
+  }
+  if (appInstalled()) markInstalled();
+  window.addEventListener("appinstalled", markInstalled);
+  if (navigator.getInstalledRelatedApps) {
+    navigator.getInstalledRelatedApps().then(function (apps) {
+      if (apps && apps.length) markInstalled();
+    }).catch(function () {});
+  }
+  window.hideSplash = function () {
+    setProgress(100, "מוכן");
+    if (!isMobile() || appInstalled()) {
+      var wait = 2000 - (Date.now() - splashStarted);
+      if (wait > 0) setTimeout(closeSplash, wait);
+      else closeSplash();
+    }
+  };
   function showStep(step) {
     var meta = document.getElementById("step-meta");
     var lines = document.getElementById("step-lines");
@@ -30,13 +63,6 @@
     if (lab && msg) lab.textContent = msg;
     if (bar && pct != null) bar.style.width = Math.max(8, Math.min(100, pct)) + "%";
     if (el) el.classList.toggle("show", !!on);
-  }
-  function findCustomer(o) {
-    if (!o) return null;
-    var list = DATA.customers || [];
-    var byCode = list.filter(function (c) { return String(c.code) === String(o.customerCode || ""); })[0];
-    if (byCode) return byCode;
-    return list.filter(function (c) { return c.name === o.customer; })[0] || null;
   }
   function row(label, val, href) {
     if (val == null || String(val).trim() === "") return "";
