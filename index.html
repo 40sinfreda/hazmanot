@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="logo.png">
   <link rel="apple-touch-icon" href="logo.png">
-  <link rel="stylesheet" href="theme.css?v=25">
+  <link rel="stylesheet" href="theme.css?v=26">
 </head>
 <body>
   <div id="splash">
@@ -60,12 +60,14 @@
       </div>
       <div id="prod-results" class="results"></div>
       <div id="stock-hint" class="fab-note"></div>
+      <button type="button" class="btn btn-outline" onclick="addLine()">הוסף שורה</button>
       <div id="lines"></div>
     </div>
-    <button type="button" class="btn btn-primary" onclick="saveOrder()">שמור הזמנה</button>
+    <button type="button" class="btn btn-primary" id="save-btn" onclick="saveOrder()">שמור הזמנה</button>
   </div>
   <div id="screen-detail" class="screen">
     <div class="card" id="detail"></div>
+    <button type="button" class="btn btn-outline" onclick="editOrder()">עריכת הזמנה</button>
     <button type="button" class="btn btn-primary" onclick="setStatus('מוכנה')">סמן מוכנה</button>
     <button type="button" class="btn btn-accent" onclick="setStatus('סופקה')">סמן סופקה</button>
     <button type="button" class="btn btn-outline" onclick="showScreen('home')">חזרה</button>
@@ -75,7 +77,7 @@
     <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
     <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
   </nav>
-  <script src="config.js?v=25"></script>
-  <script src="app.js?v=25"></script>
+  <script src="config.js?v=26"></script>
+  <script src="app.js?v=26"></script>
 </body>
 </html>
