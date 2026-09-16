@@ -6,6 +6,21 @@ var PICKED_CUST = null;
 var PICKED_PROD = null;
 var deferredPrompt = null;
 var splashStarted = Date.now();
+function apiUrl() {
+  return (window.HAZMANOT_WEBAPP || "") + "?token=" + encodeURIComponent(window.HAZMANOT_TOKEN || "");
+}
+function postAction(payload, cb) {
+  var url = window.HAZMANOT_WEBAPP;
+  if (!url) { cb && cb(null); return; }
+  payload.token = window.HAZMANOT_TOKEN || "";
+  fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  }).then(function (r) { return r.json(); }).then(function (j) {
+    cb && cb(j);
+  }).catch(function () { cb && cb(null); });
+}
 function toast(t) {
   var el = document.getElementById("toast");
   if (!el) return;
@@ -161,24 +176,40 @@ function saveLocalOrder(o) {
 function mergeLocalOrders() {
   try {
     var extra = JSON.parse(localStorage.getItem("hazmanot_orders") || "[]");
-    extra.forEach(function (o) { DATA.orders.push(o); });
+    extra.forEach(function (o) {
+      var exists = (DATA.orders || []).some(function (x) { return String(x.id) === String(o.id); });
+      if (!exists) DATA.orders.push(o);
+    });
   } catch (e) {}
 }
 function saveOrder() {
   if (!PICKED_CUST || !LINES.length) { toast("לקוח ושורות חובה"); return; }
   var ag = document.getElementById("agent").value;
   var a = (DATA.agents || []).filter(function (x) { return String(x.code) === String(ag); })[0];
-  var local = {
-    id: "H-L" + Date.now(),
+  var payload = {
+    action: "saveOrder",
     delivery: document.getElementById("delivery").value,
+    customerCode: PICKED_CUST.code,
     customer: PICKED_CUST.name,
+    agentCode: a ? a.code : ag,
     agent: a ? a.name : "",
     status: "טיוטה",
+    supplier: document.getElementById("supplier").value,
     lines: LINES.slice()
   };
-  saveLocalOrder(local);
-  toast("נשמר " + local.id);
-  load(function () { showScreen("home"); });
+  toast("שומר לגיליון...");
+  postAction(payload, function (j) {
+    if (j && j.ok) {
+      payload.id = j.id;
+      saveLocalOrder(payload);
+      toast("נשמר " + j.id);
+    } else {
+      payload.id = "H-L" + Date.now();
+      saveLocalOrder(payload);
+      toast("נשמר מקומית. הגיליון לא הגיב");
+    }
+    load(function () { showScreen("home"); });
+  });
 }
 function openOrder(id) {
   CURRENT = (DATA.orders || []).filter(function (o) { return String(o.id) === String(id); })[0];
@@ -191,6 +222,7 @@ function setStatus(st) {
   CURRENT.status = st;
   saveLocalOrder(CURRENT);
   toast(st);
+  postAction({ action: "setStatus", id: CURRENT.id, status: st }, function () {});
   renderHome();
   showScreen("home");
 }
@@ -221,6 +253,20 @@ function tickSplash() {
   setProgress(pct);
   if (elapsed < 2000) setTimeout(tickSplash, 80);
 }
+function loadRemoteOrders(done) {
+  if (!window.HAZMANOT_WEBAPP) { done && done(); return; }
+  fetch(apiUrl())
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (j && j.ok && j.orders) DATA.orders = j.orders;
+      mergeLocalOrders();
+      done && done();
+    })
+    .catch(function () {
+      mergeLocalOrders();
+      done && done();
+    });
+}
 function getAll(cb) {
   setProgress(12, "טוען נתונים...");
   tickSplash();
@@ -229,11 +275,13 @@ function getAll(cb) {
     .then(function (j) {
       DATA = j;
       DATA.orders = DATA.orders || [];
-      mergeLocalOrders();
-      setProgress(100, "מוכן");
-      renderHome();
-      hideSplash();
-      cb && cb();
+      setProgress(70, "טוען הזמנות...");
+      loadRemoteOrders(function () {
+        setProgress(100, "מוכן");
+        renderHome();
+        hideSplash();
+        cb && cb();
+      });
     })
     .catch(function () {
       setProgress(100, "לא נטען קטלוג");
