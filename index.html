@@ -8,10 +8,19 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="כלבו ווט">
   <title>הזמנות כלבו ווט</title>
-  <link rel="manifest" href="manifest.json?v=30">
+  <link rel="manifest" href="manifest.json?v=31">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-  <link rel="stylesheet" href="theme.css?v=30">
+  <link rel="stylesheet" href="theme.css?v=31">
+  <style>
+    .step{display:none}
+    .step.on{display:block}
+    #save-wait{position:fixed;inset:0;background:rgba(255,255,255,.96);z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+    #save-wait.show{display:flex}
+    #save-wait .bar{width:min(70vw,280px);height:6px;background:#e6efe9;border-radius:99px;overflow:hidden;margin-top:16px}
+    #save-fill{height:100%;width:12%;background:#3d8f6e;transition:width .3s}
+    #save-wait-msg{margin-top:12px;font-size:1.05rem;font-weight:700;color:#16352b}
+  </style>
 </head>
 <body>
   <div id="splash">
@@ -22,6 +31,11 @@
     <button type="button" id="install-btn" class="mobile-only">התקן את האפליקציה</button>
     <button type="button" id="skip-install" class="mobile-only">המשך בלי התקנה</button>
     <div id="ios-hint" class="mobile-only">באייפון: שתף ← הוסף למסך הבית</div>
+  </div>
+  <div id="save-wait">
+    <img class="splash-logo" src="logo.png" alt="" style="width:140px">
+    <div id="save-wait-msg">ההזמנה נשמרת</div>
+    <div class="bar"><div id="save-fill"></div></div>
   </div>
   <div class="header">
     <img class="hdr-logo" src="logo.png" alt="כלבו ווט">
@@ -42,29 +56,36 @@
     <div id="home-list"><div class="card empty">טוען נתונים...</div></div>
   </div>
   <div id="screen-new" class="screen">
-    <div class="card">
-      <label>לקוח</label>
-      <input class="search" id="cust-search" placeholder="חפש ובחר לקוח" oninput="filterCustomers()" onfocus="this.select()">
-      <div id="cust-results" class="results"></div>
-      <label>סוכן</label>
-      <select id="agent"></select>
-      <label>תאריך אספקה</label>
-      <input type="date" id="delivery">
-      <label>מי מספק</label>
-      <select id="supplier"></select>
+    <div id="step-meta" class="step on">
+      <div class="card">
+        <label>לקוח</label>
+        <input class="search" id="cust-search" placeholder="חפש ובחר לקוח" oninput="filterCustomers()" onfocus="this.select()">
+        <div id="cust-results" class="results"></div>
+        <label>סוכן</label>
+        <select id="agent"></select>
+        <label>תאריך אספקה</label>
+        <input type="date" id="delivery">
+        <label>מי מספק</label>
+        <select id="supplier"></select>
+      </div>
+      <button type="button" class="btn btn-primary" id="next-lines-btn">המשך להזמנה</button>
     </div>
-    <div class="card">
-      <label>מוצר</label>
-      <input class="search" id="prod-search" placeholder="חפש מוצר" oninput="filterProducts()" onfocus="this.select()">
-      <div id="prod-results" class="results"></div>
-      <div id="picked-prod-label" class="picked" style="display:none"></div>
-      <label>כמות</label>
-      <input id="qty" type="number" min="1" value="1">
-      <div id="stock-hint" class="fab-note"></div>
-      <button type="button" class="btn btn-outline" id="add-line-btn">הוסף שורה</button>
-      <div id="lines"></div>
+    <div id="step-lines" class="step">
+      <div class="card">
+        <div id="order-meta-summary" class="picked"></div>
+        <label>מוצר</label>
+        <input class="search" id="prod-search" placeholder="חפש מוצר" oninput="filterProducts()" onfocus="this.select()">
+        <div id="prod-results" class="results"></div>
+        <div id="picked-prod-label" class="picked" style="display:none"></div>
+        <label>כמות</label>
+        <input id="qty" type="number" min="1" value="1">
+        <div id="stock-hint" class="fab-note"></div>
+        <button type="button" class="btn btn-outline" id="add-line-btn">הוסף שורה</button>
+        <div id="lines"></div>
+      </div>
+      <button type="button" class="btn btn-outline" id="back-meta-btn">חזרה לפרטים</button>
+      <button type="button" class="btn btn-primary" id="save-btn">שמור הזמנה</button>
     </div>
-    <button type="button" class="btn btn-primary" id="save-btn">שמור הזמנה</button>
   </div>
   <div id="screen-detail" class="screen">
     <div class="card" id="detail"></div>
@@ -78,7 +99,7 @@
     <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
     <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
   </nav>
-  <script src="config.js?v=30"></script>
-  <script src="app.js?v=30"></script>
+  <script src="config.js?v=31"></script>
+  <script src="app.js?v=31"></script>
 </body>
 </html>
