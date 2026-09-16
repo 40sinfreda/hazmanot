@@ -7,13 +7,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>הזמנות סוכנים</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="theme.css?v=3">
 </head>
 <body>
   <div class="header">
     <h1>הזמנות סוכנים</h1>
     <div class="sub">כלבו ווט · מחסן ראשי</div>
-    <div class="sub" id="home-meta"></div>
+    <div class="sub" id="home-meta">טוען...</div>
   </div>
 
   <div id="screen-home" class="screen active">
@@ -25,13 +25,13 @@
       <button data-f="all" onclick="setHomeFilter('all')">הכל</button>
       <button onclick="load()">רענון</button>
     </div>
-    <div id="home-list"></div>
+    <div id="home-list"><div class="card empty">טוען נתונים מהגיליון...</div></div>
   </div>
 
   <div id="screen-new" class="screen">
     <div class="card">
       <label>לקוח</label>
-      <input class="search" id="cust-search" placeholder="חיפוש לקוח" oninput="filterCustomers()">
+      <input class="search" id="cust-search" placeholder="הקלד שם לקוח או קוד" oninput="filterCustomers()">
       <select id="customer" onchange="onCustomer()"></select>
       <label>סוכן</label>
       <select id="agent"></select>
@@ -44,29 +44,29 @@
       <div>שורות</div>
       <div id="lines"></div>
       <label>מוצר</label>
-      <input class="search" id="prod-search" placeholder="חיפוש מק״ט או שם" oninput="filterProducts()">
+      <input class="search" id="prod-search" placeholder="הקלד מק״ט או שם מוצר" oninput="filterProducts()">
       <select id="product"></select>
       <label>כמות</label>
       <input id="qty" type="number" min="1" value="1">
       <div id="stock-hint" class="fab-note"></div>
-      <button class="btn btn-outline" onclick="addLine()">הוסף שורה</button>
+      <button type="button" class="btn btn-outline" onclick="addLine()">הוסף שורה</button>
     </div>
-    <button class="btn btn-primary" onclick="saveOrder()">שמור הזמנה</button>
+    <button type="button" class="btn btn-primary" onclick="saveOrder()">שמור הזמנה</button>
   </div>
 
   <div id="screen-detail" class="screen">
     <div class="card" id="detail"></div>
-    <button class="btn btn-primary" onclick="setStatus('מוכנה')">סמן מוכנה</button>
-    <button class="btn btn-accent" onclick="setStatus('סופקה')">סמן סופקה</button>
-    <button class="btn btn-outline" onclick="showScreen('home')">חזרה</button>
+    <button type="button" class="btn btn-primary" onclick="setStatus('מוכנה')">סמן מוכנה</button>
+    <button type="button" class="btn btn-accent" onclick="setStatus('סופקה')">סמן סופקה</button>
+    <button type="button" class="btn btn-outline" onclick="showScreen('home')">חזרה</button>
   </div>
 
   <div class="toast" id="toast"></div>
   <nav class="nav">
-    <button class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
-    <button data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
+    <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
+    <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
   </nav>
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+  <script src="config.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
