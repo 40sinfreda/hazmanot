@@ -8,11 +8,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="כלבו ווט">
   <title>הזמנות כלבו ווט</title>
-  <link rel="manifest" href="manifest.json?v=27">
+  <link rel="manifest" href="manifest.json?v=28">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-  <link rel="apple-touch-icon" sizes="192x192" href="logo.png">
-  <link rel="stylesheet" href="theme.css?v=27">
+  <link rel="stylesheet" href="theme.css?v=28">
 </head>
 <body>
   <div id="splash">
@@ -56,20 +55,20 @@
     </div>
     <div class="card">
       <label>מוצר</label>
-      <div class="qty-row">
-        <input class="search" id="prod-search" placeholder="חפש ובחר מוצר" oninput="filterProducts()" onfocus="this.select()">
-        <input id="qty" type="number" min="1" value="1" title="כמות">
-      </div>
+      <input class="search" id="prod-search" placeholder="חפש מוצר" oninput="filterProducts()" onfocus="this.select()">
       <div id="prod-results" class="results"></div>
+      <div id="picked-prod-label" class="picked" style="display:none"></div>
+      <label>כמות</label>
+      <input id="qty" type="number" min="1" value="1">
       <div id="stock-hint" class="fab-note"></div>
-      <button type="button" class="btn btn-outline" onclick="addLine()">הוסף שורה</button>
+      <button type="button" class="btn btn-outline" id="add-line-btn">הוסף שורה</button>
       <div id="lines"></div>
     </div>
-    <button type="button" class="btn btn-primary" id="save-btn" onclick="saveOrder()">שמור הזמנה</button>
+    <button type="button" class="btn btn-primary" id="save-btn">שמור הזמנה</button>
   </div>
   <div id="screen-detail" class="screen">
     <div class="card" id="detail"></div>
-    <button type="button" class="btn btn-outline" onclick="editOrder()">עריכת הזמנה</button>
+    <button type="button" class="btn btn-outline" id="edit-btn">עריכת הזמנה</button>
     <button type="button" class="btn btn-primary" onclick="setStatus('מוכנה')">סמן מוכנה</button>
     <button type="button" class="btn btn-accent" onclick="setStatus('סופקה')">סמן סופקה</button>
     <button type="button" class="btn btn-outline" onclick="showScreen('home')">חזרה</button>
@@ -79,7 +78,7 @@
     <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
     <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
   </nav>
-  <script src="config.js?v=27"></script>
-  <script src="app.js?v=27"></script>
+  <script src="config.js?v=28"></script>
+  <script src="app.js?v=28"></script>
 </body>
 </html>
