@@ -200,21 +200,23 @@ function setProgress(pct, msg) {
   if (bar) bar.style.width = Math.max(8, Math.min(100, pct)) + "%";
   if (lab && msg) lab.textContent = msg;
 }
+function closeSplash() {
+  var el = document.getElementById("splash");
+  if (!el) return;
+  el.classList.add("hide");
+  setTimeout(function () { el.style.display = "none"; }, 400);
+}
 function hideSplash() {
   if (isMobile() && !isStandalone()) {
-    setProgress(100, "התקן כדי להמשיך");
+    setProgress(100, "מוכן");
     showInstallIfNeeded();
+    var skip = document.getElementById("skip-install");
+    if (skip) skip.hidden = false;
     return;
   }
   var wait = 2000 - (Date.now() - splashStarted);
-  function close() {
-    var el = document.getElementById("splash");
-    if (!el) return;
-    el.classList.add("hide");
-    setTimeout(function () { el.style.display = "none"; }, 400);
-  }
-  if (wait > 0) setTimeout(close, wait);
-  else close();
+  if (wait > 0) setTimeout(closeSplash, wait);
+  else closeSplash();
 }
 function tickSplash() {
   var elapsed = Date.now() - splashStarted;
@@ -228,7 +230,6 @@ function getAll(cb) {
   fetch("data.json?v=" + Date.now())
     .then(function (r) { return r.json(); })
     .then(function (j) {
-      setProgress(92, "מעבד קטלוג...");
       DATA = j;
       DATA.orders = DATA.orders || [];
       mergeLocalOrders();
@@ -254,10 +255,20 @@ function isMobile() {
 function showInstallIfNeeded() {
   var btn = document.getElementById("install-btn");
   var hint = document.getElementById("ios-hint");
-  if (!btn) return;
-  if (isStandalone()) { btn.hidden = true; if (hint) hint.hidden = true; return; }
-  if (!isMobile()) { btn.hidden = true; return; }
-  btn.hidden = false;
+  var skip = document.getElementById("skip-install");
+  if (isStandalone()) {
+    if (btn) btn.hidden = true;
+    if (hint) hint.hidden = true;
+    if (skip) skip.hidden = true;
+    return;
+  }
+  if (!isMobile()) {
+    if (btn) btn.hidden = true;
+    if (skip) skip.hidden = true;
+    return;
+  }
+  if (btn) btn.hidden = false;
+  if (skip) skip.hidden = false;
   if (/iPhone|iPad|iPod/i.test(navigator.userAgent) && hint) hint.hidden = false;
 }
 window.addEventListener("beforeinstallprompt", function (e) {
@@ -267,17 +278,15 @@ window.addEventListener("beforeinstallprompt", function (e) {
 });
 window.addEventListener("appinstalled", function () {
   deferredPrompt = null;
-  var btn = document.getElementById("install-btn");
-  var hint = document.getElementById("ios-hint");
-  if (btn) btn.hidden = true;
-  if (hint) hint.hidden = true;
+  closeSplash();
 });
 (function () {
   var btn = document.getElementById("install-btn");
+  var skip = document.getElementById("skip-install");
   if (btn) btn.addEventListener("click", function () {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(function () { deferredPrompt = null; btn.hidden = true; });
+      deferredPrompt.userChoice.then(function () { deferredPrompt = null; });
       return;
     }
     var hint = document.getElementById("ios-hint");
@@ -288,6 +297,7 @@ window.addEventListener("appinstalled", function () {
         : "בתפריט הדפדפן: הוסף למסך הבית / התקן אפליקציה";
     }
   });
+  if (skip) skip.addEventListener("click", function () { closeSplash(); });
   showInstallIfNeeded();
 })();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
