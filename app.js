@@ -34,7 +34,7 @@ function formatDateHe(d) {
   return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : s;
 }
 function esc(s) {
-  return String(s == null ? "" : s).split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+  return String(s == null ? "" : s).split("&").join("&").split("<").join("<").split(">").join(">");
 }
 function renderHome() {
   var q = ((document.getElementById("home-search") || {}).value || "").toLowerCase();
@@ -201,6 +201,11 @@ function setProgress(pct, msg) {
   if (lab && msg) lab.textContent = msg;
 }
 function hideSplash() {
+  if (isMobile() && !isStandalone()) {
+    setProgress(100, "התקן כדי להמשיך");
+    showInstallIfNeeded();
+    return;
+  }
   var wait = 2000 - (Date.now() - splashStarted);
   function close() {
     var el = document.getElementById("splash");
