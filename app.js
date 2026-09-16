@@ -33,9 +33,17 @@ function setSaveLabel() {
   var b = document.getElementById("save-btn");
   if (b) b.textContent = EDITING_ID ? "עדכן הזמנה" : "שמור הזמנה";
 }
+function showPickedProd() {
+  var lab = document.getElementById("picked-prod-label");
+  if (!lab) return;
+  if (!PICKED_PROD) { lab.style.display = "none"; lab.textContent = ""; return; }
+  lab.style.display = "block";
+  lab.textContent = "נבחר: " + PICKED_PROD.name;
+}
 function showScreen(name, keep) {
   ["home", "new", "detail"].forEach(function (s) {
-    document.getElementById("screen-" + s).classList.toggle("active", s === name);
+    var el = document.getElementById("screen-" + s);
+    if (el) el.classList.toggle("active", s === name);
   });
   document.querySelectorAll(".nav button").forEach(function (b) {
     b.classList.toggle("active", b.getAttribute("data-s") === name);
@@ -48,10 +56,25 @@ function stockMap() {
   return m;
 }
 function formatDateHe(d) {
-  if (!d) return "ללא תאריך";
-  var s = String(d).slice(0, 10);
-  var p = s.split("-");
-  return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : s;
+  var iso = toIsoDate(d);
+  if (!iso) return "ללא תאריך";
+  var p = iso.split("-");
+  return p[2] + "." + p[1] + "." + p[0];
+}
+function toIsoDate(d) {
+  if (!d) return "";
+  var s = String(d).trim();
+  var m;
+  if ((m = s.match(/^(\d{4})-(\d{2})-(\d{2})/))) return m[1] + "-" + m[2] + "-" + m[3];
+  if ((m = s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/))) {
+    var dd = ("0" + m[1]).slice(-2), mm = ("0" + m[2]).slice(-2);
+    return m[3] + "-" + mm + "-" + dd;
+  }
+  var dt = new Date(s);
+  if (!isNaN(dt.getTime())) {
+    return dt.getFullYear() + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + ("0" + dt.getDate()).slice(-2);
+  }
+  return "";
 }
 function esc(s) {
   return String(s == null ? "" : s).split("&").join("&").split("<").join("<").split(">").join(">");
@@ -83,12 +106,16 @@ function renderHome() {
       html += '<div class="group-title">' + formatDateHe(o.delivery) + '</div><div class="card">';
       last = o.delivery;
     }
-    html += '<div class="order-row" onclick="openOrder(\'' + String(o.id).replace(/'/g, "") + '\')">' +
+    html += '<div class="order-row" data-oid="' + esc(o.id) + '">' +
       "<div><b>" + esc(o.customer) + "</b></div>" +
       '<div><span class="badge">' + esc(o.status) + "</span></div></div>";
   });
   if (last !== null) html += "</div>";
-  document.getElementById("home-list").innerHTML = html;
+  var box = document.getElementById("home-list");
+  box.innerHTML = html;
+  box.querySelectorAll(".order-row").forEach(function (row) {
+    row.addEventListener("click", function () { openOrder(row.getAttribute("data-oid")); });
+  });
   var meta = document.getElementById("home-meta");
   if (meta) meta.textContent = (DATA.orders || []).length + " הזמנות";
 }
@@ -107,9 +134,12 @@ function filterCustomers() {
     return (c.name + " " + c.code + " " + (c.city || "")).toLowerCase().indexOf(q) >= 0;
   }).slice(0, 20);
   box.innerHTML = list.length ? list.map(function (c, i) {
-    return '<button type="button" class="pick" onclick="pickCustomer(' + i + ')">' + esc(c.name) + "</button>";
+    return '<button type="button" class="pick" data-i="' + i + '">' + esc(c.name) + "</button>";
   }).join("") : '<div class="hint">לא נמצא</div>';
   filterCustomers._list = list;
+  box.querySelectorAll(".pick").forEach(function (b) {
+    b.addEventListener("click", function () { pickCustomer(Number(b.getAttribute("data-i"))); });
+  });
 }
 function pickCustomer(i) {
   var c = (filterCustomers._list || [])[i];
@@ -130,26 +160,30 @@ function filterProducts() {
   }).slice(0, 20);
   box.innerHTML = list.length ? list.map(function (p, i) {
     var st = sm[p.sku];
-    return '<button type="button" class="pick" onclick="pickProduct(' + i + ')">' + esc(p.name) + (st ? "<span>יתרה " + st.available + "</span>" : "") + "</button>";
+    return '<button type="button" class="pick" data-i="' + i + '">' + esc(p.name) + (st ? "<span>יתרה " + st.available + "</span>" : "") + "</button>";
   }).join("") : '<div class="hint">לא נמצא</div>';
   filterProducts._list = list;
+  box.querySelectorAll(".pick").forEach(function (b) {
+    b.addEventListener("click", function () { pickProduct(Number(b.getAttribute("data-i"))); });
+  });
 }
 function pickProduct(i) {
   var p = (filterProducts._list || [])[i];
   if (!p) return;
   PICKED_PROD = p;
-  document.getElementById("prod-search").value = p.name;
+  document.getElementById("prod-search").value = "";
   document.getElementById("prod-results").innerHTML = "";
   var st = stockMap()[p.sku];
   document.getElementById("stock-hint").textContent = st ? ("יתרה " + st.available + " · " + st.status) : "אין יתרה";
-  document.getElementById("qty").focus();
-  document.getElementById("qty").select();
+  showPickedProd();
 }
 function fillAgents(selected) {
-  document.getElementById("agent").innerHTML = agentOptions(selected);
+  var el = document.getElementById("agent");
+  if (el) el.innerHTML = agentOptions(selected);
 }
 function fillSuppliers(selected) {
-  document.getElementById("supplier").innerHTML = agentOptions(selected);
+  var el = document.getElementById("supplier");
+  if (el) el.innerHTML = agentOptions(selected);
 }
 function prepNew() {
   EDITING_ID = null;
@@ -161,12 +195,14 @@ function prepNew() {
   document.getElementById("cust-results").innerHTML = "";
   document.getElementById("prod-results").innerHTML = "";
   document.getElementById("stock-hint").textContent = "";
+  showPickedProd();
   fillAgents(""); fillSuppliers(""); renderLines(); setSaveLabel();
 }
 function addLine() {
   var p = PICKED_PROD;
   var qty = Number(document.getElementById("qty").value || 0);
-  if (!p || qty <= 0) { toast("בחר מוצר וכמות"); return; }
+  if (!p) { toast("קודם בחר מוצר מהרשימה"); return; }
+  if (qty <= 0) { toast("הזן כמות"); return; }
   var st = stockMap()[p.sku] || { available: 0, status: "חסר" };
   var status = qty > st.available ? (st.available <= 0 ? "חסר" : "נמוך") : (st.status || "תקין");
   LINES.push({ sku: p.sku, name: p.name, qty: qty, stock: status });
@@ -174,19 +210,27 @@ function addLine() {
   document.getElementById("prod-search").value = "";
   document.getElementById("qty").value = "1";
   document.getElementById("stock-hint").textContent = "";
+  showPickedProd();
   renderLines();
 }
 function renderLines() {
   var el = document.getElementById("lines");
+  if (!el) return;
   if (!LINES.length) { el.innerHTML = '<div class="fab-note">אין שורות</div>'; return; }
   el.innerHTML = LINES.map(function (l, i) {
-    return '<div class="line"><div>' + esc(l.name) + " · " + l.qty + '</div><button type="button" class="btn btn-outline btn-tiny" onclick="LINES.splice(' + i + ',1);renderLines()">✕</button></div>';
+    return '<div class="line"><div>' + esc(l.name) + " · " + l.qty + '</div><button type="button" class="btn btn-outline btn-tiny" data-i="' + i + '">✕</button></div>';
   }).join("");
+  el.querySelectorAll("[data-i]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      LINES.splice(Number(b.getAttribute("data-i")), 1);
+      renderLines();
+    });
+  });
 }
 function saveLocalOrder(o) {
   try {
     var extra = JSON.parse(localStorage.getItem("hazmanot_orders") || "[]");
-    extra = extra.filter(function (x) { return x.id !== o.id; });
+    extra = extra.filter(function (x) { return String(x.id) !== String(o.id); });
     extra.push(o);
     localStorage.setItem("hazmanot_orders", JSON.stringify(extra));
   } catch (e) {}
@@ -197,6 +241,9 @@ function mergeLocalOrders() {
     extra.forEach(function (o) {
       var exists = (DATA.orders || []).some(function (x) { return String(x.id) === String(o.id); });
       if (!exists) DATA.orders.push(o);
+      else {
+        DATA.orders = DATA.orders.map(function (x) { return String(x.id) === String(o.id) && (o.lines && o.lines.length) ? o : x; });
+      }
     });
   } catch (e) {}
 }
@@ -235,7 +282,7 @@ function saveOrder() {
 }
 function openOrder(id) {
   CURRENT = (DATA.orders || []).filter(function (o) { return String(o.id) === String(id); })[0];
-  if (!CURRENT) return;
+  if (!CURRENT) { toast("הזמנה לא נמצאה"); return; }
   var lines = (CURRENT.lines || []).map(function (l) {
     return '<div class="line"><div>' + esc(l.name || l.sku) + '</div><div>' + esc(l.qty) + '</div></div>';
   }).join("") || '<div class="fab-note">אין שורות</div>';
@@ -248,28 +295,34 @@ function openOrder(id) {
   showScreen("detail");
 }
 function editOrder() {
-  if (!CURRENT) return;
-  EDITING_ID = CURRENT.id;
-  var name = CURRENT.customer || "";
-  PICKED_CUST = (DATA.customers || []).filter(function (c) {
-    return c.name === name || String(c.code) === String(CURRENT.customerCode || "");
-  })[0] || { code: CURRENT.customerCode || "", name: name, agent: CURRENT.agentCode || "" };
-  LINES = (CURRENT.lines || []).map(function (l) {
-    return { sku: l.sku, name: l.name || l.sku, qty: Number(l.qty || 0), stock: l.stock || "" };
-  });
-  PICKED_PROD = null;
-  showScreen("new", true);
-  document.getElementById("cust-search").value = PICKED_CUST.name || "";
-  document.getElementById("cust-results").innerHTML = "";
-  document.getElementById("prod-search").value = "";
-  document.getElementById("prod-results").innerHTML = "";
-  document.getElementById("delivery").value = String(CURRENT.delivery || "").slice(0, 10);
-  document.getElementById("qty").value = "1";
-  document.getElementById("stock-hint").textContent = "";
-  fillAgents(CURRENT.agentCode || CURRENT.agent || "");
-  fillSuppliers(CURRENT.supplier || CURRENT.agentCode || CURRENT.agent || "");
-  renderLines();
-  setSaveLabel();
+  try {
+    if (!CURRENT) { toast("קודם פתח הזמנה"); return; }
+    EDITING_ID = CURRENT.id;
+    var name = CURRENT.customer || "";
+    PICKED_CUST = (DATA.customers || []).filter(function (c) {
+      return c.name === name || String(c.code) === String(CURRENT.customerCode || "");
+    })[0] || { code: CURRENT.customerCode || "", name: name, agent: CURRENT.agentCode || "" };
+    LINES = (CURRENT.lines || []).map(function (l) {
+      return { sku: l.sku, name: l.name || l.sku, qty: Number(l.qty || 0), stock: l.stock || "" };
+    });
+    PICKED_PROD = null;
+    showScreen("new", true);
+    document.getElementById("cust-search").value = PICKED_CUST.name || "";
+    document.getElementById("cust-results").innerHTML = "";
+    document.getElementById("prod-search").value = "";
+    document.getElementById("prod-results").innerHTML = "";
+    document.getElementById("delivery").value = toIsoDate(CURRENT.delivery);
+    document.getElementById("qty").value = "1";
+    document.getElementById("stock-hint").textContent = "";
+    showPickedProd();
+    fillAgents(CURRENT.agentCode || CURRENT.agent || "");
+    fillSuppliers(CURRENT.supplier || CURRENT.agentCode || CURRENT.agent || "");
+    renderLines();
+    setSaveLabel();
+    toast("עורך הזמנה " + (CURRENT.id || ""));
+  } catch (err) {
+    toast("שגיאה בעריכה: " + err);
+  }
 }
 function setStatus(st) {
   if (!CURRENT) return;
@@ -361,6 +414,12 @@ window.addEventListener("appinstalled", function () {
 (function () {
   var btn = document.getElementById("install-btn");
   var skip = document.getElementById("skip-install");
+  var addBtn = document.getElementById("add-line-btn");
+  var saveBtn = document.getElementById("save-btn");
+  var editBtn = document.getElementById("edit-btn");
+  if (addBtn) addBtn.addEventListener("click", function (e) { e.preventDefault(); addLine(); });
+  if (saveBtn) saveBtn.addEventListener("click", function (e) { e.preventDefault(); saveOrder(); });
+  if (editBtn) editBtn.addEventListener("click", function (e) { e.preventDefault(); editOrder(); });
   if (!isMobile()) {
     if (btn) btn.style.display = "none";
     if (skip) skip.style.display = "none";
@@ -382,5 +441,10 @@ window.addEventListener("appinstalled", function () {
     if (skip) skip.style.display = "none";
   }
 })();
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function (regs) {
+    regs.forEach(function (r) { r.update(); });
+  });
+  navigator.serviceWorker.register("sw.js?v=28").catch(function () {});
+}
 load();
