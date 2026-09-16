@@ -5,7 +5,7 @@ body{padding-bottom:88px}
 .header{background:#000;color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 14px;display:flex;align-items:center;gap:12px}
 .header h1{margin:0;font-size:1.15rem}
 .header .sub{opacity:.8;font-size:.82rem;margin-top:3px}
-.hdr-logo{width:140px;height:78px;object-fit:contain;flex-shrink:0}
+.hdr-logo{width:52px;height:52px;object-fit:contain;flex-shrink:0;background:#000;border-radius:10px}
 #splash{position:fixed;inset:0;background:#000;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;color:#cfe0d6}
 #splash.hide{opacity:0;pointer-events:none;transition:opacity .35s}
 .splash-logo{width:min(92vw,520px);height:auto;margin:4px 0 12px}
