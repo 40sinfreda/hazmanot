@@ -2,6 +2,8 @@ var DATA = { products: [], stock: [], customers: [], agents: [], orders: [] };
 var LINES = [];
 var CURRENT = null;
 var HOME_FILTER = "open";
+var PICKED_CUST = null;
+var PICKED_PROD = null;
 
 function toast(t) {
   var el = document.getElementById("toast");
@@ -40,6 +42,10 @@ function formatDateHe(d) {
   return s;
 }
 
+function esc(s) {
+  return String(s == null ? "" : s).split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+}
+
 function renderHome() {
   var q = ((document.getElementById("home-search") || {}).value || "").toLowerCase();
   var list = (DATA.orders || []).filter(function (o) {
@@ -65,11 +71,11 @@ function renderHome() {
       }
       var warn = (o.lines || []).some(function (l) { return l.stock === "חסר" || l.stock === "נמוך"; });
       html += '<div class="order-row" onclick="openOrder(\'' + String(o.id).replace(/'/g, "") + '\')">' +
-        "<div><b>" + (o.customer || "") + "</b><div class=\"fab-note\">" + o.id +
-        (o.agent ? " · " + o.agent : "") +
-        (o.supplier ? " · מספק: " + o.supplier : "") +
+        "<div><b>" + esc(o.customer) + "</b><div class=\"fab-note\">" + esc(o.id) +
+        (o.agent ? " · " + esc(o.agent) : "") +
+        (o.supplier ? " · מספק: " + esc(o.supplier) : "") +
         " · " + ((o.lines || []).length) + " שורות</div></div>" +
-        '<div class="row-side"><span class="badge ' + o.status + '">' + o.status + "</span>" +
+        '<div class="row-side"><span class="badge ' + esc(o.status) + '">' + esc(o.status) + "</span>" +
         (warn ? '<div class="st-חסר">מלאי</div>' : "") + "</div></div>";
     });
     if (last !== null) html += "</div>";
@@ -88,76 +94,97 @@ function setHomeFilter(f) {
   renderHome();
 }
 
-function fillSelect(id, items) {
-  var el = document.getElementById(id);
-  el.innerHTML = '<option value="">-- בחר --</option>' + items.map(function (it) {
-    var v = String(it.val).split('"').join('&quot;');
-    return '<option value="' + v + '">' + it.label + "</option>";
+function filterCustomers() {
+  var q = (document.getElementById("cust-search").value || "").toLowerCase().trim();
+  var box = document.getElementById("cust-results");
+  if (!q) { box.innerHTML = ""; return; }
+  var list = (DATA.customers || []).filter(function (c) {
+    return (c.name + " " + c.code + " " + (c.city || "")).toLowerCase().indexOf(q) >= 0;
+  }).slice(0, 20);
+  if (!list.length) { box.innerHTML = '<div class="hint">לא נמצא</div>'; return; }
+  box.innerHTML = list.map(function (c, i) {
+    return '<button type="button" class="pick" onclick="pickCustomer(' + i + ')">' +
+      esc(c.name) + '<span>' + esc(c.code) + (c.city ? " · " + esc(c.city) : "") + "</span></button>";
   }).join("");
+  filterCustomers._list = list;
 }
 
-function filterCustomers() {
-  var q = (document.getElementById("cust-search").value || "").toLowerCase();
-  var list = (DATA.customers || []).filter(function (c) {
-    return !q || (c.name + " " + c.code + " " + (c.city || "")).toLowerCase().indexOf(q) >= 0;
-  }).slice(0, 200);
-  fillSelect("customer", list.map(function (c) {
-    return { val: c.code, label: c.name + " (" + c.code + ")" + (c.city ? " · " + c.city : "") };
-  }));
+function pickCustomer(i) {
+  var c = (filterCustomers._list || [])[i];
+  if (!c) return;
+  PICKED_CUST = c;
+  document.getElementById("picked-cust").textContent = c.name + " (" + c.code + ")";
+  document.getElementById("cust-search").value = "";
+  document.getElementById("cust-results").innerHTML = "";
+  if (c.agent) document.getElementById("agent").value = c.agent;
 }
 
 function filterProducts() {
-  var q = (document.getElementById("prod-search").value || "").toLowerCase();
+  var q = (document.getElementById("prod-search").value || "").toLowerCase().trim();
+  var box = document.getElementById("prod-results");
   var sm = stockMap();
+  if (!q) { box.innerHTML = ""; return; }
   var list = (DATA.products || []).filter(function (p) {
-    return !q || (String(p.sku) + " " + (p.name || "")).toLowerCase().indexOf(q) >= 0;
-  }).slice(0, 150);
-  fillSelect("product", list.map(function (p) {
+    return (String(p.sku) + " " + (p.name || "")).toLowerCase().indexOf(q) >= 0;
+  }).slice(0, 20);
+  if (!list.length) { box.innerHTML = '<div class="hint">לא נמצא</div>'; return; }
+  box.innerHTML = list.map(function (p, i) {
     var st = sm[p.sku];
-    var extra = st ? " · " + st.available : "";
-    return { val: p.sku, label: p.sku + " · " + (p.name || "") + extra };
-  }));
-  onProduct();
+    var extra = st ? " · יתרה " + st.available : "";
+    return '<button type="button" class="pick" onclick="pickProduct(' + i + ')">' +
+      esc(p.sku) + " · " + esc(p.name) + "<span>" + extra + "</span></button>";
+  }).join("");
+  filterProducts._list = list;
 }
 
-function onCustomer() {
-  var code = document.getElementById("customer").value;
-  var c = (DATA.customers || []).filter(function (x) { return String(x.code) === String(code); })[0];
-  if (c && c.agent) document.getElementById("agent").value = c.agent;
-}
-
-function onProduct() {
-  var sku = document.getElementById("product").value;
-  var st = stockMap()[sku];
+function pickProduct(i) {
+  var p = (filterProducts._list || [])[i];
+  if (!p) return;
+  PICKED_PROD = p;
+  document.getElementById("picked-prod").textContent = p.sku + " · " + p.name;
+  document.getElementById("prod-search").value = "";
+  document.getElementById("prod-results").innerHTML = "";
+  var st = stockMap()[p.sku];
   var el = document.getElementById("stock-hint");
-  if (!sku) { el.textContent = ""; return; }
-  if (!st) { el.innerHTML = '<span class="st-חסר">אין יתרה במחסן הראשי</span>'; return; }
-  el.innerHTML = "יתרה זמינה: " + st.available + ' · <span class="st-' + st.status + '">' + st.status + "</span>";
+  if (!st) el.innerHTML = '<span class="st-חסר">אין יתרה במחסן הראשי</span>';
+  else el.innerHTML = "יתרה זמינה: " + st.available + ' · <span class="st-' + st.status + '">' + st.status + "</span>";
+}
+
+function fillAgents() {
+  var el = document.getElementById("agent");
+  el.innerHTML = '<option value="">-- בחר סוכן --</option>' +
+    (DATA.agents || []).map(function (a) {
+      return '<option value="' + esc(a.code) + '">' + esc(a.name) + "</option>";
+    }).join("");
 }
 
 function prepNew() {
   LINES = [];
+  PICKED_CUST = null;
+  PICKED_PROD = null;
   document.getElementById("delivery").value = "";
   document.getElementById("supplier").value = "";
   document.getElementById("qty").value = "1";
   document.getElementById("cust-search").value = "";
   document.getElementById("prod-search").value = "";
-  fillSelect("agent", (DATA.agents || []).map(function (a) { return { val: a.code, label: a.name }; }));
-  filterCustomers();
-  filterProducts();
+  document.getElementById("cust-results").innerHTML = "";
+  document.getElementById("prod-results").innerHTML = "";
+  document.getElementById("picked-cust").textContent = "לא נבחר לקוח";
+  document.getElementById("picked-prod").textContent = "לא נבחר מוצר";
+  document.getElementById("stock-hint").textContent = "";
+  fillAgents();
   renderLines();
 }
 
 function addLine() {
-  var sku = document.getElementById("product").value;
+  var p = PICKED_PROD;
   var qty = Number(document.getElementById("qty").value || 0);
-  var p = (DATA.products || []).filter(function (x) { return String(x.sku) === String(sku); })[0];
-  if (!sku || !p || qty <= 0) { toast("בחר מוצר וכמות"); return; }
-  var st = stockMap()[sku] || { available: 0, status: "חסר" };
+  if (!p || qty <= 0) { toast("בחר מוצר וכמות"); return; }
+  var st = stockMap()[p.sku] || { available: 0, status: "חסר" };
   var status = qty > st.available ? (st.available <= 0 ? "חסר" : "נמוך") : (st.status || "תקין");
-  var existing = LINES.filter(function (l) { return String(l.sku) === String(sku); })[0];
+  var existing = LINES.filter(function (l) { return String(l.sku) === String(p.sku); })[0];
   if (existing) existing.qty += qty;
-  else LINES.push({ sku: sku, name: p.name, qty: qty, stock: status, available: st.available });
+  else LINES.push({ sku: p.sku, name: p.name, qty: qty, stock: status, available: st.available });
   if (status !== "תקין") toast(status === "חסר" ? "חסר במחסן הראשי" : "מלאי נמוך");
   renderLines();
 }
@@ -167,24 +194,23 @@ function renderLines() {
   if (!LINES.length) { el.innerHTML = '<div class="fab-note">אין שורות</div>'; return; }
   el.innerHTML = LINES.map(function (l, i) {
     var msg = l.stock === "חסר" ? "חסר במחסן הראשי" : (l.stock === "נמוך" ? "מלאי נמוך" : "");
-    return '<div class="line"><div>' + l.sku + " · " + l.name + "<div class=\"fab-note\">" + l.qty +
+    return '<div class="line"><div>' + esc(l.sku) + " · " + esc(l.name) + "<div class=\"fab-note\">" + l.qty +
       ' · <span class="st-' + l.stock + '">' + l.stock + (msg ? " — " + msg : "") +
-      "</span></div></div><button class=\"btn btn-outline btn-tiny\" onclick=\"LINES.splice(" + i + ",1);renderLines()\">✕</button></div>";
+      "</span></div></div><button type=\"button\" class=\"btn btn-outline btn-tiny\" onclick=\"LINES.splice(" + i + ",1);renderLines()\">✕</button></div>";
   }).join("");
 }
 
 function saveOrder() {
-  var cust = document.getElementById("customer").value;
-  var c = (DATA.customers || []).filter(function (x) { return String(x.code) === String(cust); })[0];
+  if (!PICKED_CUST || !LINES.length) { toast("לקוח ושורות חובה"); return; }
   var ag = document.getElementById("agent").value;
   var a = (DATA.agents || []).filter(function (x) { return String(x.code) === String(ag); })[0];
-  if (!c || !LINES.length) { toast("לקוח ושורות חובה"); return; }
+  toast("שומר...");
   post({
     token: window.HAZMANOT_TOKEN,
     action: "saveOrder",
     delivery: document.getElementById("delivery").value,
-    customerCode: c.code,
-    customer: c.name,
+    customerCode: PICKED_CUST.code,
+    customer: PICKED_CUST.name,
     agentCode: a ? a.code : "",
     agent: a ? a.name : "",
     supplier: document.getElementById("supplier").value,
@@ -201,13 +227,13 @@ function openOrder(id) {
   CURRENT = (DATA.orders || []).filter(function (o) { return String(o.id) === String(id); })[0];
   if (!CURRENT) return;
   var lines = (CURRENT.lines || []).map(function (l) {
-    return "<div class=\"line\"><div>" + l.sku + " · " + (l.name || "") + "<div class=\"fab-note\">" + l.qty +
-      ' · <span class="st-' + (l.stock || "") + '">' + (l.alert || l.stock || "") + "</span></div></div></div>";
+    return "<div class=\"line\"><div>" + esc(l.sku) + " · " + esc(l.name || "") + "<div class=\"fab-note\">" + l.qty +
+      ' · <span class="st-' + (l.stock || "") + '">' + esc(l.alert || l.stock || "") + "</span></div></div></div>";
   }).join("");
   document.getElementById("detail").innerHTML =
-    "<b>" + CURRENT.customer + "</b><div class=\"fab-note\">" + CURRENT.id + " · " + formatDateHe(CURRENT.delivery) +
-    "</div><div>סטטוס: " + CURRENT.status + "</div><div>סוכן: " + (CURRENT.agent || "") +
-    "</div><div>מספק: " + (CURRENT.supplier || "—") + "</div>" + (lines || '<div class="fab-note">אין שורות</div>');
+    "<b>" + esc(CURRENT.customer) + "</b><div class=\"fab-note\">" + esc(CURRENT.id) + " · " + formatDateHe(CURRENT.delivery) +
+    "</div><div>סטטוס: " + esc(CURRENT.status) + "</div><div>סוכן: " + esc(CURRENT.agent || "") +
+    "</div><div>מספק: " + esc(CURRENT.supplier || "—") + "</div>" + (lines || '<div class="fab-note">אין שורות</div>');
   showScreen("detail");
 }
 
@@ -223,8 +249,7 @@ function setStatus(st) {
 function getAll(cb) {
   var u = apiUrl();
   if (!u) {
-    document.getElementById("home-list").innerHTML =
-      '<div class="card">חסרה כתובת Web App ב-config.js. פרוס את Code.gs כפרויקט אינטרנט והדבק את קישור ה-/exec. ראה SETUP.md.</div>';
+    document.getElementById("home-list").innerHTML = '<div class="card">חסרה כתובת Web App.</div>';
     cb && cb();
     return;
   }
@@ -239,7 +264,7 @@ function getAll(cb) {
     .catch(function (err) {
       toast(String(err.message || err));
       document.getElementById("home-list").innerHTML =
-        '<div class="card">לא ניתן לטעון נתונים. בדוק שהגשר פרוס ושהטוקן תואם.</div>';
+        '<div class="card">לא ניתן לטעון נתונים. בדוק חיבור ושהגשר פרוס.</div>';
       cb && cb();
     });
 }
@@ -257,5 +282,4 @@ function post(body, cb) {
 
 function load(cb) { getAll(cb); }
 
-document.getElementById("product").addEventListener("change", onProduct);
 load();
