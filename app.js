@@ -4,20 +4,17 @@ var CURRENT = null;
 var HOME_FILTER = "open";
 var PICKED_CUST = null;
 var PICKED_PROD = null;
-
 function toast(t) {
   var el = document.getElementById("toast");
   el.textContent = t;
   el.classList.add("show");
   setTimeout(function () { el.classList.remove("show"); }, 2400);
 }
-
 function apiUrl() {
   var u = window.HAZMANOT_WEBAPP || "";
   if (!u) return "";
   return u + (u.indexOf("?") >= 0 ? "&" : "?") + "token=" + encodeURIComponent(window.HAZMANOT_TOKEN || "");
 }
-
 function showScreen(name) {
   ["home", "new", "detail"].forEach(function (s) {
     document.getElementById("screen-" + s).classList.toggle("active", s === name);
@@ -27,13 +24,11 @@ function showScreen(name) {
   });
   if (name === "new") prepNew();
 }
-
 function stockMap() {
   var m = {};
   (DATA.stock || []).forEach(function (s) { if (s && s.sku) m[String(s.sku)] = s; });
   return m;
 }
-
 function formatDateHe(d) {
   if (!d) return "ללא תאריך";
   var s = String(d).slice(0, 10);
@@ -41,11 +36,9 @@ function formatDateHe(d) {
   if (p.length === 3) return p[2] + "." + p[1] + "." + p[0];
   return s;
 }
-
 function esc(s) {
   return String(s == null ? "" : s).split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
 }
-
 function renderHome() {
   var q = ((document.getElementById("home-search") || {}).value || "").toLowerCase();
   var list = (DATA.orders || []).filter(function (o) {
@@ -55,13 +48,11 @@ function renderHome() {
     return true;
   }).filter(function (o) {
     if (!q) return true;
-    var hay = [o.customer, o.agent, o.id, o.supplier, o.status].join(" ").toLowerCase();
-    return hay.indexOf(q) >= 0;
+    return [o.customer, o.agent, o.id, o.supplier, o.status].join(" ").toLowerCase().indexOf(q) >= 0;
   });
   var html = "";
-  if (!list.length) {
-    html = '<div class="card empty">אין הזמנות להצגה</div>';
-  } else {
+  if (!list.length) html = '<div class="card empty">אין הזמנות להצגה</div>';
+  else {
     var last = null;
     list.forEach(function (o) {
       if (o.delivery !== last) {
@@ -85,7 +76,6 @@ function renderHome() {
   var meta = document.getElementById("home-meta");
   if (meta) meta.textContent = n + " פתוחות · " + (DATA.customers || []).length + " לקוחות · " + (DATA.products || []).length + " מק״טים";
 }
-
 function setHomeFilter(f) {
   HOME_FILTER = f;
   document.querySelectorAll(".chips button").forEach(function (b) {
@@ -93,7 +83,6 @@ function setHomeFilter(f) {
   });
   renderHome();
 }
-
 function filterCustomers() {
   var q = (document.getElementById("cust-search").value || "").toLowerCase().trim();
   var box = document.getElementById("cust-results");
@@ -108,7 +97,6 @@ function filterCustomers() {
   }).join("");
   filterCustomers._list = list;
 }
-
 function pickCustomer(i) {
   var c = (filterCustomers._list || [])[i];
   if (!c) return;
@@ -118,7 +106,6 @@ function pickCustomer(i) {
   document.getElementById("cust-results").innerHTML = "";
   if (c.agent) document.getElementById("agent").value = c.agent;
 }
-
 function filterProducts() {
   var q = (document.getElementById("prod-search").value || "").toLowerCase().trim();
   var box = document.getElementById("prod-results");
@@ -136,7 +123,6 @@ function filterProducts() {
   }).join("");
   filterProducts._list = list;
 }
-
 function pickProduct(i) {
   var p = (filterProducts._list || [])[i];
   if (!p) return;
@@ -149,7 +135,6 @@ function pickProduct(i) {
   if (!st) el.innerHTML = '<span class="st-חסר">אין יתרה במחסן הראשי</span>';
   else el.innerHTML = "יתרה זמינה: " + st.available + ' · <span class="st-' + st.status + '">' + st.status + "</span>";
 }
-
 function fillAgents() {
   var el = document.getElementById("agent");
   el.innerHTML = '<option value="">-- בחר סוכן --</option>' +
@@ -157,11 +142,8 @@ function fillAgents() {
       return '<option value="' + esc(a.code) + '">' + esc(a.name) + "</option>";
     }).join("");
 }
-
 function prepNew() {
-  LINES = [];
-  PICKED_CUST = null;
-  PICKED_PROD = null;
+  LINES = []; PICKED_CUST = null; PICKED_PROD = null;
   document.getElementById("delivery").value = "";
   document.getElementById("supplier").value = "";
   document.getElementById("qty").value = "1";
@@ -172,10 +154,8 @@ function prepNew() {
   document.getElementById("picked-cust").textContent = "לא נבחר לקוח";
   document.getElementById("picked-prod").textContent = "לא נבחר מוצר";
   document.getElementById("stock-hint").textContent = "";
-  fillAgents();
-  renderLines();
+  fillAgents(); renderLines();
 }
-
 function addLine() {
   var p = PICKED_PROD;
   var qty = Number(document.getElementById("qty").value || 0);
@@ -188,7 +168,6 @@ function addLine() {
   if (status !== "תקין") toast(status === "חסר" ? "חסר במחסן הראשי" : "מלאי נמוך");
   renderLines();
 }
-
 function renderLines() {
   var el = document.getElementById("lines");
   if (!LINES.length) { el.innerHTML = '<div class="fab-note">אין שורות</div>'; return; }
@@ -199,30 +178,58 @@ function renderLines() {
       "</span></div></div><button type=\"button\" class=\"btn btn-outline btn-tiny\" onclick=\"LINES.splice(" + i + ",1);renderLines()\">✕</button></div>";
   }).join("");
 }
-
+function saveLocalOrder(o) {
+  try {
+    var extra = JSON.parse(localStorage.getItem("hazmanot_orders") || "[]");
+    extra = extra.filter(function (x) { return x.id !== o.id; });
+    extra.push(o);
+    localStorage.setItem("hazmanot_orders", JSON.stringify(extra));
+  } catch (e) {}
+}
+function mergeLocalOrders() {
+  try {
+    var extra = JSON.parse(localStorage.getItem("hazmanot_orders") || "[]");
+    var have = {};
+    (DATA.orders || []).forEach(function (o) { have[o.id] = true; });
+    extra.forEach(function (o) { if (!have[o.id]) DATA.orders.push(o); });
+  } catch (e) {}
+}
 function saveOrder() {
   if (!PICKED_CUST || !LINES.length) { toast("לקוח ושורות חובה"); return; }
   var ag = document.getElementById("agent").value;
   var a = (DATA.agents || []).filter(function (x) { return String(x.code) === String(ag); })[0];
-  toast("שומר...");
-  post({
-    token: window.HAZMANOT_TOKEN,
-    action: "saveOrder",
+  var local = {
+    id: "H-L" + Date.now(),
     delivery: document.getElementById("delivery").value,
-    customerCode: PICKED_CUST.code,
     customer: PICKED_CUST.name,
-    agentCode: a ? a.code : "",
+    customerCode: PICKED_CUST.code,
     agent: a ? a.name : "",
     supplier: document.getElementById("supplier").value,
     status: "טיוטה",
-    lines: LINES
-  }, function (res) {
-    if (!res || !res.ok) { toast((res && res.error) || "שגיאה בשמירה"); return; }
-    toast("נשמר " + res.id);
-    load(function () { showScreen("home"); });
-  });
+    lines: LINES.slice()
+  };
+  saveLocalOrder(local);
+  toast("נשמר " + local.id);
+  load(function () { showScreen("home"); });
+  var u = window.HAZMANOT_WEBAPP;
+  if (!u) return;
+  fetch(u, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({
+      token: window.HAZMANOT_TOKEN,
+      action: "saveOrder",
+      delivery: local.delivery,
+      customerCode: local.customerCode,
+      customer: local.customer,
+      agentCode: a ? a.code : "",
+      agent: local.agent,
+      supplier: local.supplier,
+      status: "טיוטה",
+      lines: local.lines
+    })
+  }).catch(function () {});
 }
-
 function openOrder(id) {
   CURRENT = (DATA.orders || []).filter(function (o) { return String(o.id) === String(id); })[0];
   if (!CURRENT) return;
@@ -236,50 +243,27 @@ function openOrder(id) {
     "</div><div>מספק: " + esc(CURRENT.supplier || "—") + "</div>" + (lines || '<div class="fab-note">אין שורות</div>');
   showScreen("detail");
 }
-
 function setStatus(st) {
   if (!CURRENT) return;
-  post({ token: window.HAZMANOT_TOKEN, action: "setStatus", id: CURRENT.id, status: st, supplier: CURRENT.supplier }, function (res) {
-    if (!res || !res.ok) { toast((res && res.error) || "שגיאה"); return; }
-    toast(st);
-    load(function () { showScreen("home"); });
-  });
+  CURRENT.status = st;
+  saveLocalOrder(CURRENT);
+  toast(st);
+  renderHome();
+  showScreen("home");
 }
-
 function getAll(cb) {
-  var u = apiUrl();
-  if (!u) {
-    document.getElementById("home-list").innerHTML = '<div class="card">חסרה כתובת Web App.</div>';
-    cb && cb();
-    return;
-  }
-  fetch(u + "&action=all")
+  fetch("data.json?v=5")
     .then(function (r) { return r.json(); })
     .then(function (j) {
-      if (!j.ok) throw new Error(j.error || "שגיאה");
       DATA = j;
+      mergeLocalOrders();
       renderHome();
       cb && cb();
     })
-    .catch(function (err) {
-      toast(String(err.message || err));
-      document.getElementById("home-list").innerHTML =
-        '<div class="card">לא ניתן לטעון נתונים. בדוק חיבור ושהגשר פרוס.</div>';
+    .catch(function () {
+      document.getElementById("home-list").innerHTML = '<div class="card">לא נטען data.json</div>';
       cb && cb();
     });
 }
-
-function post(body, cb) {
-  var u = window.HAZMANOT_WEBAPP;
-  if (!u) { toast("חסר Web App"); return; }
-  fetch(u, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(body)
-  }).then(function (r) { return r.json(); }).then(cb)
-    .catch(function (err) { toast(String(err)); });
-}
-
 function load(cb) { getAll(cb); }
-
 load();
