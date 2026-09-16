@@ -31,6 +31,62 @@
     if (bar && pct != null) bar.style.width = Math.max(8, Math.min(100, pct)) + "%";
     if (el) el.classList.toggle("show", !!on);
   }
+  function findCustomer(o) {
+    if (!o) return null;
+    var list = DATA.customers || [];
+    var byCode = list.filter(function (c) { return String(c.code) === String(o.customerCode || ""); })[0];
+    if (byCode) return byCode;
+    return list.filter(function (c) { return c.name === o.customer; })[0] || null;
+  }
+  function row(label, val, href) {
+    if (val == null || String(val).trim() === "") return "";
+    var v = esc(val);
+    if (href) v = '<a href="' + href + '">' + v + "</a>";
+    return '<div class="cust-row"><span>' + label + '</span><b>' + v + "</b></div>";
+  }
+  window.openCustomer = function (code, name) {
+    var c = (DATA.customers || []).filter(function (x) {
+      return String(x.code) === String(code) || x.name === name;
+    })[0] || { name: name || "", code: code || "" };
+    var agent = (DATA.agents || []).filter(function (a) {
+      return String(a.code) === String(c.agent || "") || a.name === c.agentName;
+    })[0];
+    var tel = String(c.phone || "").replace(/[^0-9+]/g, "");
+    var html = "<h2>" + esc(c.name || name || "לקוח") + "</h2>";
+    html += row("קוד לקוח", c.code);
+    html += row("עיר", c.city);
+    html += row("כתובת", c.address);
+    html += row("טלפון", c.phone, tel ? ("tel:" + tel) : "");
+    html += row("מייל", c.email, c.email ? ("mailto:" + c.email) : "");
+    html += row("סוכן", c.agentName || (agent ? agent.name : "") || c.agent);
+    if (c.payment) html += row("תנאי תשלום", c.payment);
+    if (c.status) html += row("סטטוס", c.status);
+    document.getElementById("cust-card-body").innerHTML = html;
+    document.getElementById("cust-card").classList.add("show");
+  };
+  window.closeCustomer = function () {
+    var el = document.getElementById("cust-card");
+    if (el) el.classList.remove("show");
+  };
+  var _openOrder = window.openOrder;
+  window.openOrder = function (id) {
+    if (_openOrder) _openOrder(id);
+    if (!CURRENT) return;
+    var box = document.getElementById("detail");
+    if (!box) return;
+    var name = CURRENT.customer || "";
+    var code = CURRENT.customerCode || "";
+    box.innerHTML = box.innerHTML.replace(
+      "<b>" + esc(name) + "</b>",
+      '<b class="cust-link" data-code="' + esc(code) + '" data-name="' + esc(name) + '">' + esc(name) + "</b>"
+    );
+    var link = box.querySelector(".cust-link");
+    if (link) link.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openCustomer(link.getAttribute("data-code"), link.getAttribute("data-name"));
+    });
+  };
   var _prepNew = window.prepNew;
   window.prepNew = function () {
     if (_prepNew) _prepNew();
@@ -85,7 +141,13 @@
   };
   var nextBtn = document.getElementById("next-lines-btn");
   var backBtn = document.getElementById("back-meta-btn");
+  var closeBtn = document.getElementById("cust-card-close");
   if (nextBtn) nextBtn.addEventListener("click", function (e) { e.preventDefault(); goToLines(); });
   if (backBtn) backBtn.addEventListener("click", function (e) { e.preventDefault(); goToMeta(); });
+  if (closeBtn) closeBtn.addEventListener("click", function (e) { e.preventDefault(); closeCustomer(); });
+  var card = document.getElementById("cust-card");
+  if (card) card.addEventListener("click", function (e) {
+    if (e.target === card) closeCustomer();
+  });
   showStep("meta");
 })();
