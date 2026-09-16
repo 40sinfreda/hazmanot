@@ -1,0 +1,34 @@
+:root{--bg:#f3f1ea;--card:#fff;--ink:#16352b;--muted:#5c6b64;--brand:#0f3d2e;--accent:#c45c26;--ok:#2e7d32;--low:#ed6c02;--out:#c62828;--line:#e2ddd4}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+body{padding-bottom:88px}
+.header{background:var(--brand);color:#fff;padding:16px 16px calc(16px + env(safe-area-inset-top))}
+.header h1{margin:0;font-size:1.2rem}
+.header .sub{opacity:.8;font-size:.85rem;margin-top:4px}
+.screen{display:none;padding:12px}
+.screen.active{display:block}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.group-title{font-weight:700;margin:16px 4px 8px;color:var(--muted);font-size:.8rem}
+.order-row{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.order-row:last-child{border-bottom:0}
+.badge{font-size:.72rem;padding:3px 8px;border-radius:999px;background:#eee}
+.badge.טיוטה{background:#eceff1}
+.badge.מוכנה{background:#e8f5e9;color:var(--ok)}
+.badge.סופקה{background:#e3f2fd}
+.badge.חסר,.st-חסר{color:var(--out)}
+.st-נמוך{color:var(--low)}
+.st-תקין{color:var(--ok)}
+label{display:block;margin:10px 0 4px;font-size:.85rem}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:1rem;background:#fff}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:12px;font-size:1rem;cursor:pointer;margin-top:10px}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-outline{background:transparent;border:1px solid var(--line)}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.nav button{flex:1;border:0;background:none;padding:10px 0 8px;color:var(--muted)}
+.nav button.active{color:var(--brand);font-weight:700}
+.toast{position:fixed;bottom:90px;left:16px;right:16px;background:#16352b;color:#fff;padding:12px;border-radius:10px;display:none;text-align:center}
+.toast.show{display:block}
+.line{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.search{margin-bottom:8px}
+.fab-note{font-size:.8rem;color:var(--muted);margin-top:6px}

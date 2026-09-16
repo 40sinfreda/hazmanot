@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f3d2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>הזמנות סוכנים</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="theme.css">
+</head>
+<body>
+  <div class="header">
+    <h1>הזמנות סוכנים</h1>
+    <div class="sub">כלבו ווט · מחסן ראשי</div>
+  </div>
+  <div id="screen-home" class="screen active"><div id="home-list"></div></div>
+  <div id="screen-new" class="screen">
+    <div class="card">
+      <label>לקוח</label>
+      <input class="search" id="cust-search" placeholder="חיפוש לקוח" oninput="filterCustomers()">
+      <select id="customer" onchange="onCustomer()"></select>
+      <label>סוכן</label>
+      <select id="agent"></select>
+      <label>תאריך אספקה</label>
+      <input type="date" id="delivery">
+      <label>מי מספק</label>
+      <input id="supplier" placeholder="שם / רכב">
+    </div>
+    <div class="card">
+      <div>שורות</div>
+      <div id="lines"></div>
+      <label>מוצר</label>
+      <input class="search" id="prod-search" placeholder="חיפוש מק״ט או שם" oninput="filterProducts()">
+      <select id="product"></select>
+      <label>כמות</label>
+      <input id="qty" type="number" min="1" value="1">
+      <div id="stock-hint" class="fab-note"></div>
+      <button class="btn btn-outline" onclick="addLine()">הוסף שורה</button>
+    </div>
+    <button class="btn btn-primary" onclick="saveOrder()">שמור הזמנה</button>
+  </div>
+  <div id="screen-detail" class="screen">
+    <div class="card" id="detail"></div>
+    <button class="btn btn-primary" onclick="setStatus('מוכנה')">סמן מוכנה</button>
+    <button class="btn btn-accent" onclick="setStatus('סופקה')">סמן סופקה</button>
+    <button class="btn btn-outline" onclick="showScreen('home')">חזרה</button>
+  </div>
+  <div class="toast" id="toast"></div>
+  <nav class="nav">
+    <button class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
+    <button data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
+  </nav>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
