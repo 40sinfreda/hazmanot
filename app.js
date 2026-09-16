@@ -4,8 +4,10 @@ var CURRENT = null;
 var HOME_FILTER = "open";
 var PICKED_CUST = null;
 var PICKED_PROD = null;
+var deferredPrompt = null;
 function toast(t) {
   var el = document.getElementById("toast");
+  if (!el) return;
   el.textContent = t;
   el.classList.add("show");
   setTimeout(function () { el.classList.remove("show"); }, 2400);
@@ -191,20 +193,79 @@ function setStatus(st) {
   renderHome();
   showScreen("home");
 }
+function setProgress(pct, msg) {
+  var bar = document.getElementById("bar-fill");
+  var lab = document.getElementById("splash-msg");
+  if (bar) bar.style.width = Math.max(8, Math.min(100, pct)) + "%";
+  if (lab && msg) lab.textContent = msg;
+}
+function hideSplash() {
+  var el = document.getElementById("splash");
+  if (!el) return;
+  el.classList.add("hide");
+  setTimeout(function () { el.style.display = "none"; }, 400);
+}
 function getAll(cb) {
-  fetch("data.json?v=6")
+  setProgress(15, "טוען נתונים...");
+  fetch("data.json?v=8")
     .then(function (r) { return r.json(); })
     .then(function (j) {
+      setProgress(80, "מעבד קטלוג...");
       DATA = j;
       DATA.orders = DATA.orders || [];
       mergeLocalOrders();
+      setProgress(100, "מוכן");
       renderHome();
+      hideSplash();
       cb && cb();
     })
     .catch(function () {
-      document.getElementById("home-list").innerHTML = '<div class="card">לא נטען קטלוג. רענן עם ?v=6</div>';
+      setProgress(100, "לא נטען קטלוג");
+      document.getElementById("home-list").innerHTML = '<div class="card">לא נטען נתונים</div>';
+      hideSplash();
       cb && cb();
     });
 }
 function load(cb) { getAll(cb); }
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+function isMobile() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.innerWidth < 820 && "ontouchstart" in window);
+}
+function showInstallIfNeeded() {
+  if (!isMobile() || isStandalone()) return;
+  var btn = document.getElementById("install-btn");
+  var hint = document.getElementById("ios-hint");
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    if (hint) hint.hidden = false;
+  } else if (deferredPrompt && btn) {
+    btn.hidden = false;
+  }
+}
+window.addEventListener("beforeinstallprompt", function (e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallIfNeeded();
+});
+window.addEventListener("appinstalled", function () {
+  deferredPrompt = null;
+  var btn = document.getElementById("install-btn");
+  var hint = document.getElementById("ios-hint");
+  if (btn) btn.hidden = true;
+  if (hint) hint.hidden = true;
+});
+(function () {
+  var btn = document.getElementById("install-btn");
+  if (btn) btn.addEventListener("click", function () {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () {
+      deferredPrompt = null;
+      btn.hidden = true;
+    });
+  });
+  showInstallIfNeeded();
+})();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
 load();
