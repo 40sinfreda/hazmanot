@@ -10,11 +10,6 @@ function toast(t) {
   el.classList.add("show");
   setTimeout(function () { el.classList.remove("show"); }, 2400);
 }
-function apiUrl() {
-  var u = window.HAZMANOT_WEBAPP || "";
-  if (!u) return "";
-  return u + (u.indexOf("?") >= 0 ? "&" : "?") + "token=" + encodeURIComponent(window.HAZMANOT_TOKEN || "");
-}
 function showScreen(name) {
   ["home", "new", "detail"].forEach(function (s) {
     document.getElementById("screen-" + s).classList.toggle("active", s === name);
@@ -37,7 +32,7 @@ function formatDateHe(d) {
   return s;
 }
 function esc(s) {
-  return String(s == null ? "" : s).split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+  return String(s == null ? "" : s).split("&").join("&").split("<").join("<").split(">").join(">");
 }
 function renderHome() {
   var q = ((document.getElementById("home-search") || {}).value || "").toLowerCase();
@@ -64,7 +59,6 @@ function renderHome() {
       html += '<div class="order-row" onclick="openOrder(\'' + String(o.id).replace(/'/g, "") + '\')">' +
         "<div><b>" + esc(o.customer) + "</b><div class=\"fab-note\">" + esc(o.id) +
         (o.agent ? " · " + esc(o.agent) : "") +
-        (o.supplier ? " · מספק: " + esc(o.supplier) : "") +
         " · " + ((o.lines || []).length) + " שורות</div></div>" +
         '<div class="row-side"><span class="badge ' + esc(o.status) + '">' + esc(o.status) + "</span>" +
         (warn ? '<div class="st-חסר">מלאי</div>' : "") + "</div></div>";
@@ -132,7 +126,7 @@ function pickProduct(i) {
   document.getElementById("prod-results").innerHTML = "";
   var st = stockMap()[p.sku];
   var el = document.getElementById("stock-hint");
-  if (!st) el.innerHTML = '<span class="st-חסר">אין יתרה במחסן הראשי</span>';
+  if (!st) el.innerHTML = '<span class="st-חסר">אין יתרה</span>';
   else el.innerHTML = "יתרה זמינה: " + st.available + ' · <span class="st-' + st.status + '">' + st.status + "</span>";
 }
 function fillAgents() {
@@ -144,11 +138,8 @@ function fillAgents() {
 }
 function prepNew() {
   LINES = []; PICKED_CUST = null; PICKED_PROD = null;
-  document.getElementById("delivery").value = "";
-  document.getElementById("supplier").value = "";
+  ["delivery","supplier","cust-search","prod-search"].forEach(function (id) { document.getElementById(id).value = ""; });
   document.getElementById("qty").value = "1";
-  document.getElementById("cust-search").value = "";
-  document.getElementById("prod-search").value = "";
   document.getElementById("cust-results").innerHTML = "";
   document.getElementById("prod-results").innerHTML = "";
   document.getElementById("picked-cust").textContent = "לא נבחר לקוח";
@@ -165,17 +156,15 @@ function addLine() {
   var existing = LINES.filter(function (l) { return String(l.sku) === String(p.sku); })[0];
   if (existing) existing.qty += qty;
   else LINES.push({ sku: p.sku, name: p.name, qty: qty, stock: status, available: st.available });
-  if (status !== "תקין") toast(status === "חסר" ? "חסר במחסן הראשי" : "מלאי נמוך");
   renderLines();
 }
 function renderLines() {
   var el = document.getElementById("lines");
   if (!LINES.length) { el.innerHTML = '<div class="fab-note">אין שורות</div>'; return; }
   el.innerHTML = LINES.map(function (l, i) {
-    var msg = l.stock === "חסר" ? "חסר במחסן הראשי" : (l.stock === "נמוך" ? "מלאי נמוך" : "");
     return '<div class="line"><div>' + esc(l.sku) + " · " + esc(l.name) + "<div class=\"fab-note\">" + l.qty +
-      ' · <span class="st-' + l.stock + '">' + l.stock + (msg ? " — " + msg : "") +
-      "</span></div></div><button type=\"button\" class=\"btn btn-outline btn-tiny\" onclick=\"LINES.splice(" + i + ",1);renderLines()\">✕</button></div>";
+      ' · <span class="st-' + l.stock + '">' + l.stock + "</span></div></div>" +
+      '<button type="button" class="btn btn-outline btn-tiny" onclick="LINES.splice(' + i + ',1);renderLines()">✕</button></div>';
   }).join("");
 }
 function saveLocalOrder(o) {
@@ -211,36 +200,18 @@ function saveOrder() {
   saveLocalOrder(local);
   toast("נשמר " + local.id);
   load(function () { showScreen("home"); });
-  var u = window.HAZMANOT_WEBAPP;
-  if (!u) return;
-  fetch(u, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({
-      token: window.HAZMANOT_TOKEN,
-      action: "saveOrder",
-      delivery: local.delivery,
-      customerCode: local.customerCode,
-      customer: local.customer,
-      agentCode: a ? a.code : "",
-      agent: local.agent,
-      supplier: local.supplier,
-      status: "טיוטה",
-      lines: local.lines
-    })
-  }).catch(function () {});
 }
 function openOrder(id) {
   CURRENT = (DATA.orders || []).filter(function (o) { return String(o.id) === String(id); })[0];
   if (!CURRENT) return;
   var lines = (CURRENT.lines || []).map(function (l) {
     return "<div class=\"line\"><div>" + esc(l.sku) + " · " + esc(l.name || "") + "<div class=\"fab-note\">" + l.qty +
-      ' · <span class="st-' + (l.stock || "") + '">' + esc(l.alert || l.stock || "") + "</span></div></div></div>";
+      ' · <span class="st-' + (l.stock || "") + '">' + esc(l.stock || "") + "</span></div></div></div>";
   }).join("");
   document.getElementById("detail").innerHTML =
     "<b>" + esc(CURRENT.customer) + "</b><div class=\"fab-note\">" + esc(CURRENT.id) + " · " + formatDateHe(CURRENT.delivery) +
-    "</div><div>סטטוס: " + esc(CURRENT.status) + "</div><div>סוכן: " + esc(CURRENT.agent || "") +
-    "</div><div>מספק: " + esc(CURRENT.supplier || "—") + "</div>" + (lines || '<div class="fab-note">אין שורות</div>');
+    "</div><div>סטטוס: " + esc(CURRENT.status) + "</div><div>סוכן: " + esc(CURRENT.agent || "") + "</div>" +
+    (lines || "");
   showScreen("detail");
 }
 function setStatus(st) {
@@ -252,16 +223,20 @@ function setStatus(st) {
   showScreen("home");
 }
 function getAll(cb) {
-  fetch("data.json?v=5")
-    .then(function (r) { return r.json(); })
-    .then(function (j) {
-      DATA = j;
+  var files = ["products.json?v=6","customers-1.json?v=6","customers-2.json?v=6","customers-3.json?v=6","customers-4.json?v=6"];
+  Promise.all(files.map(function (f) { return fetch(f).then(function (r) { if (!r.ok) throw new Error(f); return r.json(); }); }))
+    .then(function (arr) {
+      DATA.products = arr[0].products;
+      DATA.stock = arr[0].stock;
+      DATA.agents = arr[0].agents;
+      DATA.customers = arr[1].concat(arr[2], arr[3], arr[4]);
+      DATA.orders = DATA.orders || [];
       mergeLocalOrders();
       renderHome();
       cb && cb();
     })
-    .catch(function () {
-      document.getElementById("home-list").innerHTML = '<div class="card">לא נטען data.json</div>';
+    .catch(function (err) {
+      document.getElementById("home-list").innerHTML = '<div class="card">טוען קטלוג... רענן בעוד כעבור דקה</div>';
       cb && cb();
     });
 }
