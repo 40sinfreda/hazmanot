@@ -38,3 +38,8 @@ input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 10px;font-size:.8rem;color:var(--muted)}
 .chips button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.picked{background:#eef3f0;border-radius:10px;padding:8px 10px;margin-bottom:8px;font-weight:700}
+.results{max-height:220px;overflow:auto;margin-bottom:8px}
+.pick{display:block;width:100%;text-align:right;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin:4px 0;font-size:.95rem}
+.pick span{display:block;color:var(--muted);font-size:.8rem;font-weight:400}
+.hint{color:var(--muted);font-size:.85rem;padding:6px}

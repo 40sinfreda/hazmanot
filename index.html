@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>הזמנות סוכנים</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="theme.css?v=3">
+  <link rel="stylesheet" href="theme.css?v=4">
 </head>
 <body>
   <div class="header">
@@ -19,11 +19,11 @@
   <div id="screen-home" class="screen active">
     <input class="search" id="home-search" placeholder="חיפוש לקוח / סוכן / מספר" oninput="renderHome()">
     <div class="chips">
-      <button class="on" data-f="open" onclick="setHomeFilter('open')">פתוחות</button>
-      <button data-f="draft" onclick="setHomeFilter('draft')">טיוטה</button>
-      <button data-f="ready" onclick="setHomeFilter('ready')">מוכנה</button>
-      <button data-f="all" onclick="setHomeFilter('all')">הכל</button>
-      <button onclick="load()">רענון</button>
+      <button type="button" class="on" data-f="open" onclick="setHomeFilter('open')">פתוחות</button>
+      <button type="button" data-f="draft" onclick="setHomeFilter('draft')">טיוטה</button>
+      <button type="button" data-f="ready" onclick="setHomeFilter('ready')">מוכנה</button>
+      <button type="button" data-f="all" onclick="setHomeFilter('all')">הכל</button>
+      <button type="button" onclick="load()">רענון</button>
     </div>
     <div id="home-list"><div class="card empty">טוען נתונים מהגיליון...</div></div>
   </div>
@@ -31,8 +31,9 @@
   <div id="screen-new" class="screen">
     <div class="card">
       <label>לקוח</label>
-      <input class="search" id="cust-search" placeholder="הקלד שם לקוח או קוד" oninput="filterCustomers()">
-      <select id="customer" onchange="onCustomer()"></select>
+      <div id="picked-cust" class="picked">לא נבחר לקוח</div>
+      <input class="search" id="cust-search" placeholder="הקלד שם או קוד לקוח" oninput="filterCustomers()">
+      <div id="cust-results" class="results"></div>
       <label>סוכן</label>
       <select id="agent"></select>
       <label>תאריך אספקה</label>
@@ -44,8 +45,9 @@
       <div>שורות</div>
       <div id="lines"></div>
       <label>מוצר</label>
-      <input class="search" id="prod-search" placeholder="הקלד מק״ט או שם מוצר" oninput="filterProducts()">
-      <select id="product"></select>
+      <div id="picked-prod" class="picked">לא נבחר מוצר</div>
+      <input class="search" id="prod-search" placeholder="הקלד מק״ט או שם" oninput="filterProducts()">
+      <div id="prod-results" class="results"></div>
       <label>כמות</label>
       <input id="qty" type="number" min="1" value="1">
       <div id="stock-hint" class="fab-note"></div>
@@ -66,7 +68,7 @@
     <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
     <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
   </nav>
-  <script src="config.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="config.js?v=4"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
