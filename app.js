@@ -133,10 +133,11 @@ function pickProduct(i) {
   var p = (filterProducts._list || [])[i];
   if (!p) return;
   PICKED_PROD = p;
-  document.getElementById("prod-search").value = p.name;
   document.getElementById("prod-results").innerHTML = "";
-  var st = stockMap()[p.sku];
-  document.getElementById("stock-hint").textContent = st ? ("יתרה " + st.available + " · " + st.status) : "אין יתרה";
+  addLine();
+  document.getElementById("prod-search").value = "";
+  document.getElementById("qty").value = "1";
+  PICKED_PROD = null;
 }
 function fillAgents(selected) {
   document.getElementById("agent").innerHTML = agentOptions(selected);
