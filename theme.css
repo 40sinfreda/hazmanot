@@ -14,6 +14,7 @@ body{padding-bottom:88px}
 #bar-fill{height:100%;width:8%;background:#3d8f6e;transition:width .25s}
 #splash-msg{margin-top:10px;font-size:.85rem;opacity:.8}
 #install-btn{margin-top:22px;border:0;background:#3d8f6e;color:#fff;border-radius:12px;padding:14px 24px;font-size:1.05rem;font-weight:700}
+#skip-install{margin-top:14px;border:0;background:transparent;color:#9cb8ab;text-decoration:underline;font-size:.95rem;padding:8px}
 #ios-hint{margin-top:16px;font-size:.85rem;opacity:.75;max-width:280px;line-height:1.4}
 .screen{display:none;padding:12px}
 .screen.active{display:block}
@@ -23,9 +24,6 @@ body{padding-bottom:88px}
 .order-row{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .order-row:last-child{border-bottom:0}
 .badge{font-size:.72rem;padding:3px 8px;border-radius:999px;background:#eee;display:inline-block}
-.badge.טיוטה{background:#eceff1}
-.badge.מוכנה{background:#e8f5e9;color:var(--ok)}
-.badge.סופקה{background:#e3f2fd}
 label{display:block;margin:10px 0 4px;font-size:.85rem}
 input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:1rem;background:#fff}
 .btn{display:block;width:100%;border:0;border-radius:12px;padding:12px;font-size:1rem;cursor:pointer;margin-top:10px}
