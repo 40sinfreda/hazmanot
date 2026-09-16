@@ -8,10 +8,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="כלבו ווט">
   <title>הזמנות כלבו ווט</title>
-  <link rel="manifest" href="manifest.json?v=33">
+  <link rel="manifest" href="manifest.json?v=34">
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-  <link rel="stylesheet" href="theme.css?v=33">
+  <link rel="stylesheet" href="theme.css?v=34">
   <style>
     .step{display:none}
     .step.on{display:block}
@@ -28,6 +28,11 @@
     .cust-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #e2ddd4;font-size:.95rem}
     .cust-row span{color:#5c6b64}
     .cust-row a{color:#0f3d2e}
+    .contact-row{display:flex;gap:8px;margin:6px 0}
+    .contact-row input{flex:1}
+    #settings-tabs{display:flex;gap:6px;margin:8px 0 12px;flex-wrap:wrap}
+    #settings-tabs button{flex:1}
+    #date-hint{font-size:.8rem;color:#5c6b64;margin-top:4px}
   </style>
 </head>
 <body>
@@ -79,6 +84,7 @@
         <select id="agent"></select>
         <label>תאריך אספקה</label>
         <input type="date" id="delivery">
+        <div id="date-hint">ברירת מחדל: מחר · אין הזמנות בשישי ושבת</div>
         <label>מי מספק</label>
         <select id="supplier"></select>
       </div>
@@ -108,13 +114,23 @@
     <button type="button" class="btn btn-accent" onclick="setStatus('סופקה')">סמן סופקה</button>
     <button type="button" class="btn btn-outline" onclick="showScreen('home')">חזרה</button>
   </div>
+  <div id="screen-settings" class="screen">
+    <div class="chips" id="settings-tabs">
+      <button type="button" class="on" data-t="cust" onclick="setSettingsTab('cust')">לקוחות</button>
+      <button type="button" data-t="agent" onclick="setSettingsTab('agent')">סוכנים</button>
+      <button type="button" data-t="sup" onclick="setSettingsTab('sup')">אספקה</button>
+    </div>
+    <div id="settings-body"></div>
+  </div>
   <div class="toast" id="toast"></div>
   <nav class="nav">
     <button type="button" class="active" data-s="home" onclick="showScreen('home')">ראשי</button>
     <button type="button" data-s="new" onclick="showScreen('new')">הזמנה חדשה</button>
+    <button type="button" data-s="settings" onclick="showScreen('settings')">הגדרות</button>
   </nav>
-  <script src="config.js?v=33"></script>
-  <script src="app.js?v=33"></script>
-  <script src="order-flow.js?v=33"></script>
+  <script src="config.js?v=34"></script>
+  <script src="app.js?v=34"></script>
+  <script src="order-flow.js?v=34"></script>
+  <script src="settings.js?v=34"></script>
 </body>
 </html>
