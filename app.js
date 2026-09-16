@@ -51,6 +51,14 @@ function formatDateHe(d) {
 function esc(s) {
   return String(s == null ? "" : s).split("&").join("&").split("<").join("<").split(">").join(">");
 }
+function agentOptions(selected) {
+  var sel = selected == null ? "" : String(selected);
+  return '<option value="">-- בחר --</option>' +
+    (DATA.agents || []).map(function (a) {
+      var on = String(a.code) === sel || String(a.name) === sel ? " selected" : "";
+      return '<option value="' + esc(a.code) + '"' + on + '>' + esc(a.name) + "</option>";
+    }).join("");
+}
 function renderHome() {
   var q = ((document.getElementById("home-search") || {}).value || "").toLowerCase();
   var list = (DATA.orders || []).filter(function (o) {
@@ -60,7 +68,7 @@ function renderHome() {
     return true;
   }).filter(function (o) {
     if (!q) return true;
-    return [o.customer, o.agent, o.id, o.status].join(" ").toLowerCase().indexOf(q) >= 0;
+    return String(o.customer || "").toLowerCase().indexOf(q) >= 0;
   });
   var html = list.length ? "" : '<div class="card empty">אין הזמנות להצגה</div>';
   var last = null;
@@ -71,13 +79,13 @@ function renderHome() {
       last = o.delivery;
     }
     html += '<div class="order-row" onclick="openOrder(\'' + String(o.id).replace(/'/g, "") + '\')">' +
-      "<div><b>" + esc(o.customer) + "</b><div class=\"fab-note\">" + esc(o.id) + (o.agent ? " · " + esc(o.agent) : "") + "</div></div>" +
-      '<div><span class="badge ' + esc(o.status) + '">' + esc(o.status) + "</span></div></div>";
+      "<div><b>" + esc(o.customer) + "</b></div>" +
+      '<div><span class="badge">' + esc(o.status) + "</span></div></div>";
   });
   if (last !== null) html += "</div>";
   document.getElementById("home-list").innerHTML = html;
   var meta = document.getElementById("home-meta");
-  if (meta) meta.textContent = (DATA.customers || []).length + " לקוחות · " + (DATA.products || []).length + " מק״טים";
+  if (meta) meta.textContent = (DATA.orders || []).length + " הזמנות";
 }
 function setHomeFilter(f) {
   HOME_FILTER = f;
@@ -94,7 +102,7 @@ function filterCustomers() {
     return (c.name + " " + c.code + " " + (c.city || "")).toLowerCase().indexOf(q) >= 0;
   }).slice(0, 20);
   box.innerHTML = list.length ? list.map(function (c, i) {
-    return '<button type="button" class="pick" onclick="pickCustomer(' + i + ')">' + esc(c.name) + "<span>" + esc(c.code) + "</span></button>";
+    return '<button type="button" class="pick" onclick="pickCustomer(' + i + ')">' + esc(c.name) + "</button>";
   }).join("") : '<div class="hint">לא נמצא</div>';
   filterCustomers._list = list;
 }
@@ -102,10 +110,11 @@ function pickCustomer(i) {
   var c = (filterCustomers._list || [])[i];
   if (!c) return;
   PICKED_CUST = c;
-  document.getElementById("picked-cust").textContent = c.name + " (" + c.code + ")";
+  document.getElementById("picked-cust").textContent = c.name;
   document.getElementById("cust-search").value = "";
   document.getElementById("cust-results").innerHTML = "";
-  if (c.agent) document.getElementById("agent").value = c.agent;
+  fillAgents(c.agent);
+  fillSuppliers(c.agent);
 }
 function filterProducts() {
   var q = (document.getElementById("prod-search").value || "").toLowerCase().trim();
@@ -117,7 +126,7 @@ function filterProducts() {
   }).slice(0, 20);
   box.innerHTML = list.length ? list.map(function (p, i) {
     var st = sm[p.sku];
-    return '<button type="button" class="pick" onclick="pickProduct(' + i + ')">' + esc(p.sku) + " · " + esc(p.name) + (st ? "<span>יתרה " + st.available + "</span>" : "") + "</button>";
+    return '<button type="button" class="pick" onclick="pickProduct(' + i + ')">' + esc(p.name) + (st ? "<span>יתרה " + st.available + "</span>" : "") + "</button>";
   }).join("") : '<div class="hint">לא נמצא</div>';
   filterProducts._list = list;
 }
@@ -125,20 +134,21 @@ function pickProduct(i) {
   var p = (filterProducts._list || [])[i];
   if (!p) return;
   PICKED_PROD = p;
-  document.getElementById("picked-prod").textContent = p.sku + " · " + p.name;
+  document.getElementById("picked-prod").textContent = p.name;
   document.getElementById("prod-search").value = "";
   document.getElementById("prod-results").innerHTML = "";
   var st = stockMap()[p.sku];
   document.getElementById("stock-hint").textContent = st ? ("יתרה " + st.available + " · " + st.status) : "אין יתרה";
 }
-function fillAgents() {
-  document.getElementById("agent").innerHTML = '<option value="">-- בחר --</option>' +
-    (DATA.agents || []).map(function (a) { return '<option value="' + esc(a.code) + '">' + esc(a.name) + "</option>"; }).join("");
+function fillAgents(selected) {
+  document.getElementById("agent").innerHTML = agentOptions(selected);
+}
+function fillSuppliers(selected) {
+  document.getElementById("supplier").innerHTML = agentOptions(selected);
 }
 function prepNew() {
   LINES = []; PICKED_CUST = null; PICKED_PROD = null;
   document.getElementById("delivery").value = "";
-  document.getElementById("supplier").value = "";
   document.getElementById("qty").value = "1";
   document.getElementById("cust-search").value = "";
   document.getElementById("prod-search").value = "";
@@ -147,7 +157,7 @@ function prepNew() {
   document.getElementById("picked-cust").textContent = "לא נבחר לקוח";
   document.getElementById("picked-prod").textContent = "לא נבחר מוצר";
   document.getElementById("stock-hint").textContent = "";
-  fillAgents(); renderLines();
+  fillAgents(""); fillSuppliers(""); renderLines();
 }
 function addLine() {
   var p = PICKED_PROD;
@@ -162,7 +172,7 @@ function renderLines() {
   var el = document.getElementById("lines");
   if (!LINES.length) { el.innerHTML = '<div class="fab-note">אין שורות</div>'; return; }
   el.innerHTML = LINES.map(function (l, i) {
-    return '<div class="line"><div>' + esc(l.sku) + " · " + esc(l.name) + " · " + l.qty + '</div><button type="button" class="btn btn-outline btn-tiny" onclick="LINES.splice(' + i + ',1);renderLines()">✕</button></div>';
+    return '<div class="line"><div>' + esc(l.name) + " · " + l.qty + '</div><button type="button" class="btn btn-outline btn-tiny" onclick="LINES.splice(' + i + ',1);renderLines()">✕</button></div>';
   }).join("");
 }
 function saveLocalOrder(o) {
@@ -186,6 +196,8 @@ function saveOrder() {
   if (!PICKED_CUST || !LINES.length) { toast("לקוח ושורות חובה"); return; }
   var ag = document.getElementById("agent").value;
   var a = (DATA.agents || []).filter(function (x) { return String(x.code) === String(ag); })[0];
+  var supCode = document.getElementById("supplier").value;
+  var sup = (DATA.agents || []).filter(function (x) { return String(x.code) === String(supCode); })[0];
   var payload = {
     action: "saveOrder",
     delivery: document.getElementById("delivery").value,
@@ -194,7 +206,7 @@ function saveOrder() {
     agentCode: a ? a.code : ag,
     agent: a ? a.name : "",
     status: "טיוטה",
-    supplier: document.getElementById("supplier").value,
+    supplier: sup ? sup.name : (supCode || ""),
     lines: LINES.slice()
   };
   toast("שומר לגיליון...");
@@ -214,7 +226,15 @@ function saveOrder() {
 function openOrder(id) {
   CURRENT = (DATA.orders || []).filter(function (o) { return String(o.id) === String(id); })[0];
   if (!CURRENT) return;
-  document.getElementById("detail").innerHTML = "<b>" + esc(CURRENT.customer) + "</b><div>" + esc(CURRENT.id) + " · " + esc(CURRENT.status) + "</div>";
+  var lines = (CURRENT.lines || []).map(function (l) {
+    return '<div class="line"><div>' + esc(l.name || l.sku) + '</div><div>' + esc(l.qty) + '</div></div>';
+  }).join("") || '<div class="fab-note">אין שורות</div>';
+  document.getElementById("detail").innerHTML =
+    "<b>" + esc(CURRENT.customer) + "</b>" +
+    '<div class="fab-note">' + esc(CURRENT.status) + " · " + formatDateHe(CURRENT.delivery) + "</div>" +
+    (CURRENT.agent ? '<div class="fab-note">סוכן: ' + esc(CURRENT.agent) + "</div>" : "") +
+    (CURRENT.supplier ? '<div class="fab-note">מספק: ' + esc(CURRENT.supplier) + "</div>" : "") +
+    "<div style=\"margin-top:10px\">" + lines + "</div>";
   showScreen("detail");
 }
 function setStatus(st) {
@@ -238,13 +258,15 @@ function closeSplash() {
   el.classList.add("hide");
   setTimeout(function () { el.style.display = "none"; }, 400);
 }
+function isMobile() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.innerWidth < 900 && "ontouchstart" in window);
+}
 function hideSplash() {
   setProgress(100, "מוכן");
-  if (isStandalone()) {
+  if (!isMobile() || isStandalone()) {
     var wait = 2000 - (Date.now() - splashStarted);
     if (wait > 0) setTimeout(closeSplash, wait);
     else closeSplash();
-    return;
   }
 }
 function tickSplash() {
@@ -305,6 +327,12 @@ window.addEventListener("appinstalled", function () {
 (function () {
   var btn = document.getElementById("install-btn");
   var skip = document.getElementById("skip-install");
+  if (!isMobile()) {
+    if (btn) btn.style.display = "none";
+    if (skip) skip.style.display = "none";
+    var hint = document.getElementById("ios-hint");
+    if (hint) hint.style.display = "none";
+  }
   if (btn) btn.addEventListener("click", function () {
     if (deferredPrompt) {
       deferredPrompt.prompt();
