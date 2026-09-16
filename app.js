@@ -5,6 +5,7 @@ var HOME_FILTER = "open";
 var PICKED_CUST = null;
 var PICKED_PROD = null;
 var deferredPrompt = null;
+var splashStarted = Date.now();
 function toast(t) {
   var el = document.getElementById("toast");
   if (!el) return;
@@ -200,17 +201,29 @@ function setProgress(pct, msg) {
   if (lab && msg) lab.textContent = msg;
 }
 function hideSplash() {
-  var el = document.getElementById("splash");
-  if (!el) return;
-  el.classList.add("hide");
-  setTimeout(function () { el.style.display = "none"; }, 400);
+  var wait = 2000 - (Date.now() - splashStarted);
+  function close() {
+    var el = document.getElementById("splash");
+    if (!el) return;
+    el.classList.add("hide");
+    setTimeout(function () { el.style.display = "none"; }, 400);
+  }
+  if (wait > 0) setTimeout(close, wait);
+  else close();
+}
+function tickSplash() {
+  var elapsed = Date.now() - splashStarted;
+  var pct = Math.min(90, 12 + elapsed / 22);
+  setProgress(pct);
+  if (elapsed < 2000) setTimeout(tickSplash, 80);
 }
 function getAll(cb) {
-  setProgress(15, "טוען נתונים...");
+  setProgress(12, "טוען נתונים...");
+  tickSplash();
   fetch("data.json?v=" + Date.now())
     .then(function (r) { return r.json(); })
     .then(function (j) {
-      setProgress(80, "מעבד קטלוג...");
+      setProgress(92, "מעבד קטלוג...");
       DATA = j;
       DATA.orders = DATA.orders || [];
       mergeLocalOrders();
@@ -231,17 +244,16 @@ function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 function isMobile() {
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.innerWidth < 820 && "ontouchstart" in window);
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.innerWidth < 900 && "ontouchstart" in window);
 }
 function showInstallIfNeeded() {
-  if (!isMobile() || isStandalone()) return;
   var btn = document.getElementById("install-btn");
   var hint = document.getElementById("ios-hint");
-  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-    if (hint) hint.hidden = false;
-  } else if (deferredPrompt && btn) {
-    btn.hidden = false;
-  }
+  if (!btn) return;
+  if (isStandalone()) { btn.hidden = true; if (hint) hint.hidden = true; return; }
+  if (!isMobile()) { btn.hidden = true; return; }
+  btn.hidden = false;
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent) && hint) hint.hidden = false;
 }
 window.addEventListener("beforeinstallprompt", function (e) {
   e.preventDefault();
@@ -258,12 +270,18 @@ window.addEventListener("appinstalled", function () {
 (function () {
   var btn = document.getElementById("install-btn");
   if (btn) btn.addEventListener("click", function () {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(function () {
-      deferredPrompt = null;
-      btn.hidden = true;
-    });
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function () { deferredPrompt = null; btn.hidden = true; });
+      return;
+    }
+    var hint = document.getElementById("ios-hint");
+    if (hint) {
+      hint.hidden = false;
+      hint.textContent = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+        ? "באייפון: שתף ← הוסף למסך הבית"
+        : "בתפריט הדפדפן: הוסף למסך הבית / התקן אפליקציה";
+    }
   });
   showInstallIfNeeded();
 })();
